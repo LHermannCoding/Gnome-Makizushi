@@ -1,5 +1,6 @@
 import pygame
 import spritesheet
+import random
 
 from sys import exit
 
@@ -29,6 +30,7 @@ class Gnome(pygame.sprite.Sprite):
         self.frame = 0
         self.images = []
         self.plate = None
+        self.money = 0
         gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
         gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
         for x in range(0,4):
@@ -50,9 +52,6 @@ class Gnome(pygame.sprite.Sprite):
         Move gnome based on control function's input and monitor sprite
         collision detection.
         """   
-        #print(self.rect.x)
-        #print(self.rect.y)
-        #print("---")
         offset_x = kitchen_pos[0] - gnomelius.rect.left
         offset_y = kitchen_pos[1] - gnomelius.rect.top
         
@@ -109,12 +108,12 @@ class Gnome(pygame.sprite.Sprite):
         elif action == "empty_items":
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
         if gnome_spritesheet != None:
-            print("update worked")
             self.images = []
             gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
             for x in range(0,4):
                 self.images.append(gnome_sheet.get_image(x, 96, 96, BLACK, scale = 1))
             self.image = self.images[facing_dir]
+            
             
 class Storage():
     """
@@ -154,6 +153,7 @@ class Storage():
             self.rect = self.image.get_rect(topleft = plate_pos)
             self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.8, self.rect.h))
     
+    
 class Plate():
     """
     Class for monitoring the ingredients (if any) that are currently on 
@@ -177,7 +177,97 @@ class Plate():
                 self.contains.append("salmon")
             elif item == "unagi":
                 self.contains.append("unagi")
-                
+    
+    
+class Customer():
+    def __init__(self, id, line_pos, request, payment):
+        self.id = id
+        self.line_pos = line_pos
+        self.payment = payment
+        self.request = request
+        if request == "tuna":
+            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_tuna")
+        elif request == "salmon":
+            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_salmon")
+        elif request == "unagi":
+            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_unagi")
+        self.placard_text = placard_text
+        
+        if id == "horace":
+            temp_sheet = pygame.image.load("art_assets/customers/horace/spritesheet_horace.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_horace_profile.png").convert_alpha()
+        elif id == "jeb":
+            temp_sheet = pygame.image.load("art_assets/customers/jeb/spritesheet_jeb.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_jeb_profile.png").convert_alpha()
+        elif id == "jordan":
+            temp_sheet = pygame.image.load("art_assets/customers/jordan/spritesheet_jordan.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_jordan_profile.png").convert_alpha()
+        elif id == "mickey":
+            temp_sheet = pygame.image.load("art_assets/customers/mickey/spritesheet_mickey.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_mickey_profile.png").convert_alpha()
+        elif id == "pickles":
+            temp_sheet = pygame.image.load("art_assets/customers/pickles/spritesheet_pickles.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_pickles_profile.png").convert_alpha()
+        elif id == "tom":
+            temp_sheet = pygame.image.load("art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/customer_tom_profile.png").convert_alpha()
+        self.placard_profile = placard_profile
+        self.person_animation = []
+        customer_spritesheet = spritesheet.SpriteSheet(temp_sheet)
+        for x in range(0,2):
+            self.person_animation.append(customer_spritesheet.get_image(x, 96, 96, BLACK, scale = 1))
+        self.person = self.person_animation[1]
+        
+        self.person_pos_x = 0
+        self.person_pos_y = (104 * line_pos) + 600
+        
+        self.placard_pos_x = 160 * line_pos
+        self.placard_pos_y = 864
+
+
+class Customer_Group():
+    def __init__(self):
+        self.attendance = {}
+        self.absent_names = ["horace", "jeb", "jordan", "mickey", "pickles", "tom"]
+        self.sushi_options = ["salmon", "tuna", "unagi"]
+        self.owed_payment = 0
+        
+    def add_order(self):
+        """
+        Adds order to queue. Returns True if order was able to be added (when
+        there is enough space in line) and False otherwise
+        
+        Note: blitting of order placard art asset done in game loop.
+        """
+        line_pos = 1
+        while self.attendance.get(line_pos, -1) == -1:
+            line_pos += 1
+        if line_pos <= 4:
+            customer_name = random.choice(self.absent_names)
+            sushi_choice = random.choice(self.sushi_options)
+            payment = random.randrange(15,55,5)
+            self.attendance[line_pos] = Customer(customer_name, line_pos, sushi_choice, payment)
+            return True
+        return False
+    
+    def fulfill_order(self,dish):
+        """
+        Fulfills order and removes it from queue. Returns True if submitted
+        order was a dish that fulfills a customer request, and False otherwise
+        
+        Note: removal of order placard art asset done in game loop.
+        """
+        line_pos = 1
+        while self.attendance.get(line_pos, -1) == -1:
+            if self.attendance[line_pos].request == dish:
+                self.absent_names.append(self.attendance[line_pos].id)
+                self.owed_payment += self.attendance[line_pos].payment
+                del self.attendance[line_pos]
+            else:
+                line_pos += 1
+        return False
+        
+            
 class Level():
     """
     Class for containing and switching between the different game states 
