@@ -252,17 +252,18 @@ class Customer_Group():
     
     def fulfill_order(self,dish):
         """
-        Fulfills order and removes it from queue. Returns True if submitted
-        order was a dish that fulfills a customer request, and False otherwise
+        Fulfills order and removes it from queue. Returns line position of 
+        fulfilled order if submitted, and False otherwise.
         
-        Note: removal of order placard art asset done in game loop.
+        Note: removal of person and placard art asset done in game loop.
         """
         line_pos = 1
         while self.attendance.get(line_pos, -1) == -1:
             if self.attendance[line_pos].request == dish:
                 self.absent_names.append(self.attendance[line_pos].id)
                 self.owed_payment += self.attendance[line_pos].payment
-                del self.attendance[line_pos]
+                # del self.attendance[line_pos] dont delete until he leaves
+                return True
             else:
                 line_pos += 1
         return False
@@ -275,6 +276,8 @@ class Level():
     """
     def __init__(self):
         self.state = 'title'
+        self.main_adding_in_pos = {1: False, 2: False, 3: False, 4: False}
+        self.main_removing_in_pos = {1: False, 2: False, 3: False, 4: False}
         
     def title(self):
         for event in pygame.event.get():
@@ -291,7 +294,6 @@ class Level():
     def main_game(self):
         offset_x = kitchen_pos[0] - gnomelius.rect.left
         offset_y = kitchen_pos[1] - gnomelius.rect.top
-        collide = gnomelius.mask.overlap_area(kitchen_base_mask, (offset_x,offset_y))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -361,14 +363,20 @@ class Level():
                             if len(gnomelius.plate.contains) == 3:
                                 gnomelius.update_plate("empty_items")
                                 gnomelius.plate = Plate()
-                                pygame.mixer.Sound.play(temp_serve)
-                                dominant_sound = False
+                                removal = customers.fulfill_order()
+                                if removal:
+                                    pygame.mixer.Sound.play(temp_serve)
+                                    dominant_sound = False
+                                    self.main_removing_in_pos[removal] = True
+                                    
+                                
                     if dominant_sound:
                         if complete :
                             pygame.mixer.Sound.play(temp_ding)
                         elif not complete:
                             pygame.mixer.Sound.play(temp_reject)
                     print("________")
+
             
         screen.fill(BACKGROUND_COLOR)
         screen.blit(kitchen_base, kitchen_pos)
@@ -380,6 +388,47 @@ class Level():
         screen.blit(plate_box.image, plate_offset)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
+        
+        num_customers = len(customers.attendance)
+        if num_customers == 0:
+            customers.add_order()
+        elif num_customers < 4:
+            rand = random.randint(1,1000)
+            if rand > 950:
+                customers.add_order()
+                self.main_adding_in_pos[num_customers + 1] = True
+        for add_pos, add_bool in self.main_adding_in_pos.items():
+            still_adding = 0
+            if add_bool:
+                if customers.attedance[add_pos].self.person_pos_y < 115:
+                    customers.attedance[add_pos].self.person_pos_y += 5
+                else:
+                    still_adding += 1
+                if customers.attedance[add_pos].self.placard_pos_y > 616:
+                    customers.attedance[add_pos].self.placard_pos_y -= 3
+                else:
+                    still_adding += 1
+                if still_adding == 2:
+                    self.main_adding_in_pos[add_pos] = False    
+        for removal_pos, removal_bool in self.main_adding_in_pos.items():
+            still_removing = 0
+            if removal_bool:
+                if customers.attedance[removal_pos].self.person_pos_y > -100:
+                    customers.attedance[removal_pos].self.person_pos_y -= 5
+                else:
+                    still_removing += 1
+                if customers.attedance[removal_pos].self.placard_pos_y < 920:
+                    customers.attedance[removal_pos].self.placard_pos_y += 3
+                else:
+                    still_removing += 1
+                if still_removing == 2:
+                    self.main_removing_in_pos[removal_pos] = False
+                    del customers.attedance[removal_pos]
+        
+        for customer in customers.attendance.values():
+            screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
+            screen.blit(customer.placard, (customer.placard_pos_x, customer.placard_pos_y))
+            
         gnomelius.update()
         gnome_group.draw(screen)
         pygame.display.update()
@@ -425,6 +474,9 @@ gnomelius = Gnome()
 gnomelius.rect.x, gnomelius.rect.y = 440, 220
 gnome_group = pygame.sprite.Group() 
 gnome_group.add(gnomelius)
+
+# Initialize the customers.
+customers = Customer_Group()
 
 # Create the ingredient boxes.
 nori_box = Storage("nori")
