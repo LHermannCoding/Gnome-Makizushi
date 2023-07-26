@@ -292,13 +292,12 @@ class Level():
         pygame.display.update()
          
     def main_game(self):
-        offset_x = kitchen_pos[0] - gnomelius.rect.left
-        offset_y = kitchen_pos[1] - gnomelius.rect.top
+        #offset_x = kitchen_pos[0] - gnomelius.rect.left
+        #offset_y = kitchen_pos[1] - gnomelius.rect.top
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
@@ -308,7 +307,6 @@ class Level():
                     gnomelius.control(0, -gnomelius.steps)
                 elif event.key == pygame.K_DOWN:
                     gnomelius.control(0, gnomelius.steps)
-                
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(gnomelius.steps, 0)
@@ -367,36 +365,29 @@ class Level():
                                 if removal:
                                     pygame.mixer.Sound.play(temp_serve)
                                     dominant_sound = False
-                                    self.main_removing_in_pos[removal] = True
-                                    
-                                
+                                    self.main_removing_in_pos[removal] = True                           
                     if dominant_sound:
                         if complete :
                             pygame.mixer.Sound.play(temp_ding)
                         elif not complete:
                             pygame.mixer.Sound.play(temp_reject)
-                    print("________")
 
             
         screen.fill(BACKGROUND_COLOR)
         screen.blit(kitchen_base, kitchen_pos)
-        screen.blit(nori_box.image, nori_pos)
-        screen.blit(rice_box.image, rice_pos)
-        screen.blit(tuna_box.image, tuna_pos)
-        screen.blit(salmon_box.image, salmon_pos)
-        screen.blit(unagi_box.image, unagi_pos)
-        screen.blit(plate_box.image, plate_offset)
-        screen.blit(trashcan, trashcan_pos)
-        screen.blit(counter, counter_pos)
+        #screen.blit(nori_box.image, nori_pos)
+        #screen.blit(rice_box.image, rice_pos)
+        #screen.blit(tuna_box.image, tuna_pos)
+        #screen.blit(salmon_box.image, salmon_pos)
+        #screen.blit(unagi_box.image, unagi_pos)
+        #screen.blit(plate_box.image, plate_offset)
+        #screen.blit(trashcan, trashcan_pos)
+        #screen.blit(counter, counter_pos)
         
         num_customers = len(customers.attendance)
         if num_customers == 0:
             customers.add_order()
-        elif num_customers < 4:
-            rand = random.randint(1,1000)
-            if rand > 950:
-                customers.add_order()
-                self.main_adding_in_pos[num_customers + 1] = True
+        """
         for add_pos, add_bool in self.main_adding_in_pos.items():
             still_adding = 0
             if add_bool:
@@ -428,6 +419,7 @@ class Level():
         for customer in customers.attendance.values():
             screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
             screen.blit(customer.placard, (customer.placard_pos_x, customer.placard_pos_y))
+        """
             
         gnomelius.update()
         gnome_group.draw(screen)
