@@ -85,7 +85,7 @@ class Gnome(pygame.sprite.Sprite):
         """
         gnome_spritesheet = None
         facing_dir = 1
-        print((self.plate.contains))
+        #print((self.plate.contains))
         if action == "pick_up" and self.plate != None:
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
             self.plate = Plate()
@@ -186,31 +186,31 @@ class Customer():
         self.payment = payment
         self.request = request
         if request == "tuna":
-            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_tuna")
+            placard_text = pygame.image.load("art_assets/text/profile_text_tuna.png").convert_alpha()
         elif request == "salmon":
-            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_salmon")
+            placard_text = pygame.image.load("art_assets/text/profile_text_salmon.png").convert_alpha()
         elif request == "unagi":
-            placard_text = pygame.image.load("art_assets/customers/TEXT/profile_text_unagi")
+            placard_text = pygame.image.load("art_assets/text/profile_text_unagi.png").convert_alpha()
         self.placard_text = placard_text
         
         if id == "horace":
             temp_sheet = pygame.image.load("art_assets/customers/horace/spritesheet_horace.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_horace_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/horace/horace_profile.png").convert_alpha()
         elif id == "jeb":
             temp_sheet = pygame.image.load("art_assets/customers/jeb/spritesheet_jeb.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_jeb_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/jeb/jeb_profile.png").convert_alpha()
         elif id == "jordan":
             temp_sheet = pygame.image.load("art_assets/customers/jordan/spritesheet_jordan.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_jordan_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/jordan/jordan_profile.png").convert_alpha()
         elif id == "mickey":
             temp_sheet = pygame.image.load("art_assets/customers/mickey/spritesheet_mickey.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_mickey_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/mickey/mickey_profile.png").convert_alpha()
         elif id == "pickles":
             temp_sheet = pygame.image.load("art_assets/customers/pickles/spritesheet_pickles.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_pickles_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/pickles/pickles_profile.png").convert_alpha()
         elif id == "tom":
             temp_sheet = pygame.image.load("art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/customer_tom_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/tom/tom_profile.png").convert_alpha()
         self.placard_profile = placard_profile
         self.person_animation = []
         customer_spritesheet = spritesheet.SpriteSheet(temp_sheet)
@@ -218,11 +218,11 @@ class Customer():
             self.person_animation.append(customer_spritesheet.get_image(x, 96, 96, BLACK, scale = 1))
         self.person = self.person_animation[1]
         
-        self.person_pos_x = 0
-        self.person_pos_y = (104 * line_pos) + 600
+        self.person_pos_x = (80 * line_pos) + 500
+        self.person_pos_y = -205
         
-        self.placard_pos_x = 160 * line_pos
-        self.placard_pos_y = 864
+        self.placard_pos_x = (160 * line_pos) - 154
+        self.placard_pos_y = 1080
 
 
 class Customer_Group():
@@ -234,20 +234,21 @@ class Customer_Group():
         
     def add_order(self):
         """
-        Adds order to queue. Returns True if order was able to be added (when
-        there is enough space in line) and False otherwise
+        Adds order to queue. Returns line position of added order (when
+        there is enough space in line), and False otherwise.
         
         Note: blitting of order placard art asset done in game loop.
         """
         line_pos = 1
-        while self.attendance.get(line_pos, -1) == -1:
+        while self.attendance.get(line_pos, -1) != -1:
             line_pos += 1
         if line_pos <= 4:
             customer_name = random.choice(self.absent_names)
             sushi_choice = random.choice(self.sushi_options)
             payment = random.randrange(15,55,5)
             self.attendance[line_pos] = Customer(customer_name, line_pos, sushi_choice, payment)
-            return True
+            self.absent_names.remove(customer_name)
+            return line_pos
         return False
     
     def fulfill_order(self,dish):
@@ -258,14 +259,13 @@ class Customer_Group():
         Note: removal of person and placard art asset done in game loop.
         """
         line_pos = 1
-        while self.attendance.get(line_pos, -1) == -1:
-            if self.attendance[line_pos].request == dish:
-                self.absent_names.append(self.attendance[line_pos].id)
-                self.owed_payment += self.attendance[line_pos].payment
-                # del self.attendance[line_pos] dont delete until he leaves
-                return True
-            else:
-                line_pos += 1
+        for _ in range(4):
+            if self.attendance.get(line_pos, -1) != -1:
+                if self.attendance[line_pos].request == dish:
+                    self.absent_names.append(self.attendance[line_pos].id)
+                    self.owed_payment += self.attendance[line_pos].payment
+                    return line_pos
+            line_pos += 1
         return False
         
             
@@ -317,55 +317,47 @@ class Level():
                 elif event.key == pygame.K_DOWN:
                     gnomelius.control(0, -gnomelius.steps)       
                 elif event.key == pygame.K_SPACE:
-                    print("Action:")
                     complete = False
                     dominant_sound = True
                     if pygame.Rect.colliderect(gnomelius.rect,plate_box.rect):
-                        print("pick_up")
                         gnomelius.plate = Plate()
                         gnomelius.update_plate("pick_up")
                         complete = True
                     elif gnomelius.plate != None:
                         if pygame.Rect.colliderect(gnomelius.rect,nori_box.rect):
-                            print("nori")
                             gnomelius.update_plate("add_nori")
                             gnomelius.plate.add_item("nori")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,rice_box.rect):
-                            print("rice")
                             gnomelius.update_plate("add_rice")
                             gnomelius.plate.add_item("rice")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,tuna_box.rect):
-                            print("tuna")
                             gnomelius.update_plate("add_tuna")
                             gnomelius.plate.add_item("tuna")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,salmon_box.rect):
-                            print("salmon")
                             gnomelius.update_plate("add_salmon")
                             gnomelius.plate.add_item("salmon")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,unagi_box.rect):
-                            print("unagi")
                             gnomelius.update_plate("add_unagi")
                             gnomelius.plate.add_item("unagi")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,trashcan_rect):
-                            print("trash")
                             gnomelius.update_plate("empty_items")
                             gnomelius.plate = Plate()
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,counter_rect):
-                            print("serve dish")
                             if len(gnomelius.plate.contains) == 3:
-                                gnomelius.update_plate("empty_items")
-                                gnomelius.plate = Plate()
-                                removal = customers.fulfill_order()
+                                removal = customers.fulfill_order(gnomelius.plate.contains[2])
                                 if removal:
+                                    customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                     pygame.mixer.Sound.play(temp_serve)
                                     dominant_sound = False
-                                    self.main_removing_in_pos[removal] = True                           
+                                    self.main_removing_in_pos[removal] = True 
+                                gnomelius.update_plate("empty_items")
+                                gnomelius.plate = Plate()                          
                     if dominant_sound:
                         if complete :
                             pygame.mixer.Sound.play(temp_ding)
@@ -375,51 +367,58 @@ class Level():
             
         screen.fill(BACKGROUND_COLOR)
         screen.blit(kitchen_base, kitchen_pos)
-        #screen.blit(nori_box.image, nori_pos)
-        #screen.blit(rice_box.image, rice_pos)
-        #screen.blit(tuna_box.image, tuna_pos)
-        #screen.blit(salmon_box.image, salmon_pos)
-        #screen.blit(unagi_box.image, unagi_pos)
-        #screen.blit(plate_box.image, plate_offset)
-        #screen.blit(trashcan, trashcan_pos)
-        #screen.blit(counter, counter_pos)
+        screen.blit(nori_box.image, nori_pos)
+        screen.blit(rice_box.image, rice_pos)
+        screen.blit(tuna_box.image, tuna_pos)
+        screen.blit(salmon_box.image, salmon_pos)
+        screen.blit(unagi_box.image, unagi_pos)
+        screen.blit(plate_box.image, plate_offset)
+        screen.blit(trashcan, trashcan_pos)
+        screen.blit(counter, counter_pos)
         
         num_customers = len(customers.attendance)
         if num_customers == 0:
-            customers.add_order()
-        """
+            position = customers.add_order()
+            self.main_adding_in_pos[position] = True
+        if num_customers < 4:
+            temp_rand = random.randint(1, 600)
+            if temp_rand == 600:
+                position = customers.add_order()
+                if position:
+                    self.main_adding_in_pos[position] = True
+            
         for add_pos, add_bool in self.main_adding_in_pos.items():
-            still_adding = 0
-            if add_bool:
-                if customers.attedance[add_pos].self.person_pos_y < 115:
-                    customers.attedance[add_pos].self.person_pos_y += 5
+            if add_bool == True:
+                still_adding = 0
+                if customers.attendance[add_pos].person_pos_y < 25:
+                    customers.attendance[add_pos].person_pos_y += 1
                 else:
                     still_adding += 1
-                if customers.attedance[add_pos].self.placard_pos_y > 616:
-                    customers.attedance[add_pos].self.placard_pos_y -= 3
+                if customers.attendance[add_pos].placard_pos_y > 616:
+                    customers.attendance[add_pos].placard_pos_y -= 2
                 else:
                     still_adding += 1
-                if still_adding == 2:
-                    self.main_adding_in_pos[add_pos] = False    
-        for removal_pos, removal_bool in self.main_adding_in_pos.items():
+                if still_adding == 2 or self.main_removing_in_pos[add_pos]:
+                    self.main_adding_in_pos[add_pos] = False
+        for removal_pos, removal_bool in self.main_removing_in_pos.items():
             still_removing = 0
             if removal_bool:
-                if customers.attedance[removal_pos].self.person_pos_y > -100:
-                    customers.attedance[removal_pos].self.person_pos_y -= 5
+                if customers.attendance[removal_pos].person_pos_y > -100:
+                    customers.attendance[removal_pos].person_pos_y -= 1
                 else:
                     still_removing += 1
-                if customers.attedance[removal_pos].self.placard_pos_y < 920:
-                    customers.attedance[removal_pos].self.placard_pos_y += 3
+                if customers.attendance[removal_pos].placard_pos_y < 920:
+                    customers.attendance[removal_pos].placard_pos_y += 1
                 else:
                     still_removing += 1
                 if still_removing == 2:
                     self.main_removing_in_pos[removal_pos] = False
-                    del customers.attedance[removal_pos]
+                    del customers.attendance[removal_pos]
         
         for customer in customers.attendance.values():
             screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
-            screen.blit(customer.placard, (customer.placard_pos_x, customer.placard_pos_y))
-        """
+            screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
+            screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
             
         gnomelius.update()
         gnome_group.draw(screen)
