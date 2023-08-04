@@ -3,8 +3,18 @@ import spritesheet
 import random
 
 from sys import exit
+"""
+This is the main code for Gnomed: Makizushi by LHermannCoding. Credit to Clear 
+Code and Coding with Russ for their helpful YouTube tutorials on masks, game 
+state management, and more.
 
+"""
 # Constants:
+origin = (0,0)
+title_gnome_x = 880
+title_gnome_y = 135
+start_pos = (200, 330)
+help_pos = (500, 330)
 nori_pos = (162,265)
 rice_pos = (324,450)
 tuna_pos = (410,500)
@@ -15,6 +25,9 @@ plate_offset = (168,174)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
 counter_offset = (572,187)
+
+# Dynamic Constants:
+animation_timer = 0
 
 class Gnome(pygame.sprite.Sprite):
     """
@@ -52,8 +65,8 @@ class Gnome(pygame.sprite.Sprite):
         Move gnome based on control function's input and monitor sprite
         collision detection.
         """   
-        offset_x = kitchen_pos[0] - gnomelius.rect.left
-        offset_y = kitchen_pos[1] - gnomelius.rect.top
+        offset_x = origin[0] - gnomelius.rect.left
+        offset_y = origin[1] - gnomelius.rect.top
         
         if self.mask.overlap_area(kitchen_base_mask, (offset_x,offset_y)) <= 60:
             self.previous_pos = (self.rect.center)
@@ -84,17 +97,14 @@ class Gnome(pygame.sprite.Sprite):
         Update gnome spritesheet based on plate contents.
         """
         gnome_spritesheet = None
-        facing_dir = 1
         #print((self.plate.contains))
         if action == "pick_up" and self.plate != None:
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
             self.plate = Plate()
         elif action == "add_nori" and len(self.plate.contains) == 0:
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_nori.png").convert_alpha() 
-            facing_dir = 3       
+            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_nori.png").convert_alpha()        
         elif action == "add_rice" and len(self.plate.contains) == 1:
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_rice.png").convert_alpha() 
-            facing_dir = 3  
         elif len(self.plate.contains) == 2: 
             if action == "add_tuna":
                 gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_tuna.png").convert_alpha() 
@@ -112,7 +122,7 @@ class Gnome(pygame.sprite.Sprite):
             gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
             for x in range(0,4):
                 self.images.append(gnome_sheet.get_image(x, 96, 96, BLACK, scale = 1))
-            self.image = self.images[facing_dir]
+            self.image = self.images[self.frame]
             
             
 class Storage():
@@ -280,20 +290,42 @@ class Level():
         self.main_removing_in_pos = {1: False, 2: False, 3: False, 4: False}
         
     def title(self):
+        global animation_timer
+        global title_gnome_x
+        global title_gnome_y
+        screen.blit(title_bg, origin)  
+        if title_gnome_x >= 580:
+            title_gnome_x -= 3
+        elif animation_timer <= 150:
+            animation_timer += 4
+            
+        if animation_timer >= 50:
+            s = screen.blit(start_button, start_pos)
+        if animation_timer >= 100:
+            h = screen.blit(help_button, help_pos)
+            
+        g = screen.blit(title_gnome, (title_gnome_x, title_gnome_y))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.state = 'main_game'
-                pygame.mixer.music.play()
-        screen.fill((240,240,240))
-        screen.blit(start_button, (380, 300))  
+            if event.type == pygame.MOUSEBUTTONUP:
+                if title_gnome_x <= 580:
+                    pos = pygame.mouse.get_pos()
+                    if s.collidepoint(pos):
+                        self.state = 'main_game'
+                        pygame.mixer.music.play()             
+                    elif h.collidepoint(pos):
+                        print("temp for tutorial placeholder")
+                    elif g.collidepoint(pos):
+                        #play_sound?
+                        print("temp sound placeholder honk")
         pygame.display.update()
          
+         
     def main_game(self):
-        #offset_x = kitchen_pos[0] - gnomelius.rect.left
-        #offset_y = kitchen_pos[1] - gnomelius.rect.top
+        global title_gnome_x
+        global title_gnome_y
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -356,8 +388,7 @@ class Level():
                                     pygame.mixer.Sound.play(temp_serve)
                                     dominant_sound = False
                                     self.main_removing_in_pos[removal] = True 
-                                gnomelius.update_plate("empty_items")
-                                gnomelius.plate = Plate()                          
+                                gnomelius.update_plate("put_down")                        
                     if dominant_sound:
                         if complete :
                             pygame.mixer.Sound.play(temp_ding)
@@ -366,7 +397,7 @@ class Level():
 
             
         screen.fill(BACKGROUND_COLOR)
-        screen.blit(kitchen_base, kitchen_pos)
+        screen.blit(kitchen_base, origin)
         screen.blit(nori_box.image, nori_pos)
         screen.blit(rice_box.image, rice_pos)
         screen.blit(tuna_box.image, tuna_pos)
@@ -375,7 +406,7 @@ class Level():
         screen.blit(plate_box.image, plate_offset)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
-        
+         
         num_customers = len(customers.attendance)
         if num_customers == 0:
             position = customers.add_order()
@@ -422,6 +453,10 @@ class Level():
             
         gnomelius.update()
         gnome_group.draw(screen)
+        
+        if title_gnome_x >= -360:
+            title_gnome_x -= 12
+            screen.blit(title_gnome, (title_gnome_x,title_gnome_y))
         pygame.display.update()
         
     def level_manager(self):
@@ -448,11 +483,17 @@ pygame.display.set_caption('A Gnome Game')
 gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
 gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
 
-start_button = pygame.image.load("art_assets/startbutton.png")
+start_button = pygame.image.load("art_assets/buttons/start.png")
+start_rect = start_button.get_rect(topleft = trashcan_pos)
+help_button = pygame.image.load("art_assets/buttons/help.png")
+help_rect = help_button.get_rect(topleft = trashcan_pos)
+
+title_bg = pygame.image.load("art_assets/title_background.png")
+title_gnome = pygame.image.load("art_assets/title_gnome.png")
+
 kitchen = kitchen_base = pygame.image.load("art_assets/kitchen_mask_old.png").convert_alpha()
 kitchen_base = pygame.image.load("art_assets/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
-kitchen_pos = (0,0)
 
 trashcan = pygame.image.load("art_assets/trashcan.png").convert_alpha()
 trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)
