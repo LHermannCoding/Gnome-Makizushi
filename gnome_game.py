@@ -29,9 +29,12 @@ counter_offset = (572,187)
 coins_pos = (824,649)
 gnome_placard_pos = (646,616)
 placard_profile_pos = (640,619)
+win_pos = (188, 500)
 
 # Dynamic Constants:
 animation_timer = 0
+win_animation_timer = 0
+payment_max = 2000
 
 class Gnome(pygame.sprite.Sprite):
     """
@@ -48,6 +51,7 @@ class Gnome(pygame.sprite.Sprite):
         self.images = []
         self.plate = None
         self.money = 0
+        self.game_state = 'main_game'
         gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
         gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
         for x in range(0,4):
@@ -72,30 +76,44 @@ class Gnome(pygame.sprite.Sprite):
         offset_x = origin[0] - gnomelius.rect.left
         offset_y = origin[1] - gnomelius.rect.top
         
-        if self.mask.overlap_area(kitchen_base_mask, (offset_x,offset_y)) <= 60:
+        if self.game_state == 'main_game':
+            current_mask = kitchen_base_mask
+        elif self.game_state == 'end_game':
+            current_mask = end_base_mask
+            
+        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) <= 60:
             self.previous_pos = (self.rect.center)
-        if self.mask.overlap_area(kitchen_base_mask, (offset_x,offset_y)) > 0:
+        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) > 0:
             self.rect.center = self.previous_pos
             
         self.rect.x = self.rect.x + self.movex
         self.rect.y = self.rect.y + self.movey
-         
-        if self.movex < 0:
-            self.frame = 2
-            self.image = self.images[self.frame]
-            
-        if self.movex > 0:
-            self.frame = 3
-            self.image = self.images[self.frame]
-            
-        if self.movey < 0:
-            self.frame = 0
-            self.image = self.images[self.frame]   
-            
-        if self.movey > 0:
-            self.frame = 1
-            self.image = self.images[self.frame]
         
+        if self.game_state == "end_game":
+            global win_animation_timer
+            current = win_animation_timer // 15
+            if current == 0:
+                self.frame = 0
+            elif current == 1:
+                self.frame = 2
+            elif current == 2:
+                self.frame = 1
+            elif current == 3:
+                self.frame = 3
+            win_animation_timer += 1
+            if win_animation_timer >= 59:
+                win_animation_timer = 0
+        else:
+            if self.movex < 0:
+                self.frame = 2        
+            if self.movex > 0:
+                self.frame = 3        
+            if self.movey < 0:
+                self.frame = 0       
+            if self.movey > 0:
+                self.frame = 1
+                
+        self.image = self.images[self.frame]
         self.placard_profile = self.image
     
     def update_plate(self, action):
@@ -196,10 +214,11 @@ class Plate():
     
     
 class Customer():
-    def __init__(self, id, line_pos, request, payment):
+    def __init__(self, id, line_pos, request):
         self.id = id
         self.line_pos = line_pos
-        self.payment = payment
+        self.payment = 60
+        self.payment_timer = payment_max
         self.request = request
         if request == "tuna":
             placard_text = pygame.image.load("art_assets/text/profile_text_tuna.png").convert_alpha()
@@ -239,11 +258,19 @@ class Customer():
         
         self.placard_pos_x = (160 * line_pos) - 154
         self.placard_pos_y = 1080
+    
+    def payment_calculation(self):
+        """
+        Calculate how much will be paid out for fulfillment or order based on 
+        time spent waiting for dish.
+        """
+        self.payment = max(10, int(self.payment * (self.payment_timer / payment_max)))
 
 
 class Customer_Group():
     def __init__(self):
         self.attendance = {}
+        self.arrival_order = []
         self.absent_names = ["horace", "jeb", "jordan", "mickey", "pickles", "tom"]
         self.sushi_options = ["salmon", "tuna", "unagi"]
         self.owed_payment = 0
@@ -261,8 +288,8 @@ class Customer_Group():
         if line_pos <= 4:
             customer_name = random.choice(self.absent_names)
             sushi_choice = random.choice(self.sushi_options)
-            payment = random.randrange(15,55,5)
-            self.attendance[line_pos] = Customer(customer_name, line_pos, sushi_choice, payment)
+            self.attendance[line_pos] = Customer(customer_name, line_pos, sushi_choice)
+            self.arrival_order.append(line_pos)
             self.absent_names.remove(customer_name)
             return line_pos
         return False
@@ -274,14 +301,14 @@ class Customer_Group():
         
         Note: removal of person and placard art asset done in game loop.
         """
-        line_pos = 1
-        for _ in range(4):
-            if self.attendance.get(line_pos, -1) != -1:
-                if self.attendance[line_pos].request == dish:
-                    self.absent_names.append(self.attendance[line_pos].id)
-                    self.owed_payment += self.attendance[line_pos].payment
-                    return line_pos
-            line_pos += 1
+        for idx, pos in enumerate(self.arrival_order):
+            if self.attendance.get(pos, -1) != -1:
+                if self.attendance[pos].request == dish:
+                    self.absent_names.append(self.attendance[pos].id)
+                    self.attendance[pos].payment_calculation()
+                    self.owed_payment += self.attendance[pos].payment
+                    del self.arrival_order[idx]
+                    return pos
         return False
         
             
@@ -423,8 +450,8 @@ class Level():
             position = customers.add_order()
             self.main_adding_in_pos[position] = True
         if num_customers < 4:
-            temp_rand = random.randint(1, 600)
-            if temp_rand == 600:
+            temp_rand = random.randint(1, 480)
+            if temp_rand == 480:
                 position = customers.add_order()
                 if position:
                     self.main_adding_in_pos[position] = True
@@ -458,6 +485,7 @@ class Level():
                     del customers.attendance[removal_pos]
         
         for customer in customers.attendance.values():
+            customer.payment_timer -= 1
             screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
@@ -470,11 +498,54 @@ class Level():
             screen.blit(title_gnome, (title_gnome_x,title_gnome_y))
         pygame.display.update()
         
+        if gnomelius.money >= 100:
+            gnomelius.steps = 3
+            gnomelius.game_state = 'end_game'
+            self.state = 'end_game'
+        
+    def end_game(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    gnomelius.control(-gnomelius.steps, 0)
+                elif event.key == pygame.K_RIGHT:
+                    gnomelius.control(gnomelius.steps, 0)
+                elif event.key == pygame.K_UP:
+                    gnomelius.control(0, -gnomelius.steps)
+                elif event.key == pygame.K_DOWN:
+                    gnomelius.control(0, gnomelius.steps)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    gnomelius.control(gnomelius.steps, 0)
+                elif event.key == pygame.K_RIGHT:
+                    gnomelius.control(-gnomelius.steps, 0)
+                elif event.key == pygame.K_UP:
+                    gnomelius.control(0, gnomelius.steps)
+                elif event.key == pygame.K_DOWN:
+                    gnomelius.control(0, -gnomelius.steps)
+                    
+        screen.fill(BACKGROUND_COLOR)
+        screen.blit(end_base, origin)
+        screen.blit(gnomelius.placard_profile, placard_profile_pos)
+        screen.blit(gnome_placard, gnome_placard_pos)
+        update_display_coins(gnomelius)
+        update_display_win(gnomelius)
+        
+        gnomelius.update()
+        gnome_group.draw(screen)
+        pygame.display.update()
+        
+        
     def level_manager(self):
         if self.state == 'title':
             self.title()
         if self.state == 'main_game':
             self.main_game()
+        if self.state == 'end_game':
+            self.end_game()
 
 
 # Define Constants
@@ -505,9 +576,11 @@ help_rect = help_button.get_rect(topleft = trashcan_pos)
 title_bg = pygame.image.load("art_assets/title_background.png")
 title_gnome = pygame.image.load("art_assets/title_gnome.png")
 
-kitchen = kitchen_base = pygame.image.load("art_assets/kitchen_mask_old.png").convert_alpha()
 kitchen_base = pygame.image.load("art_assets/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
+
+end_base = pygame.image.load("art_assets/end_screen_mask.png").convert_alpha()
+end_base_mask = pygame.mask.from_surface(end_base)
 
 trashcan = pygame.image.load("art_assets/trashcan.png").convert_alpha()
 trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)
@@ -543,10 +616,14 @@ temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 
 # Universal Functions:
-textfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
+coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
+winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
 def update_display_coins(gnome):
-    coins = textfont.render('$' + str(gnome.money), True, BROWN)
+    coins = coinfont.render('$' + str(gnome.money), True, BROWN)
     screen.blit(coins, coins_pos)
+def update_display_win(gnome):
+    win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
+    screen.blit(win, win_pos)
     
 # Begin game
 while True:
