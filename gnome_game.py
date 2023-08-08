@@ -3,8 +3,9 @@ import spritesheet
 import random
 
 from sys import exit
+
 """
-This is the main code for Gnomed: Makizushi by LHermannCoding. Credit to Clear 
+This is the main code for Gnome: Makizushi by LHermannCoding. Credit to Clear 
 Code and Coding with Russ for their helpful YouTube tutorials on masks, game 
 state management, and more.
 
@@ -25,6 +26,7 @@ plate_offset = (168,174)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
 counter_offset = (572,187)
+coins_pos = (780,640)
 
 # Dynamic Constants:
 animation_timer = 0
@@ -310,7 +312,7 @@ class Level():
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONUP:
-                if title_gnome_x <= 580:
+                if animation_timer >= 100:
                     pos = pygame.mouse.get_pos()
                     if s.collidepoint(pos):
                         self.state = 'main_game'
@@ -388,6 +390,8 @@ class Level():
                                     pygame.mixer.Sound.play(temp_serve)
                                     dominant_sound = False
                                     self.main_removing_in_pos[removal] = True 
+                                    gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
+                                    customers.owed_payment = 0 
                                 gnomelius.update_plate("put_down")                        
                     if dominant_sound:
                         if complete :
@@ -406,6 +410,7 @@ class Level():
         screen.blit(plate_box.image, plate_offset)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
+        update_display_coins(gnomelius)
          
         num_customers = len(customers.attendance)
         if num_customers == 0:
@@ -455,7 +460,7 @@ class Level():
         gnome_group.draw(screen)
         
         if title_gnome_x >= -360:
-            title_gnome_x -= 12
+            title_gnome_x -= 14
             screen.blit(title_gnome, (title_gnome_x,title_gnome_y))
         pygame.display.update()
         
@@ -464,7 +469,8 @@ class Level():
             self.title()
         if self.state == 'main_game':
             self.main_game()
-        
+
+
 # Define Constants
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
@@ -473,6 +479,7 @@ BLACK = (0,0,0)
 
 # Pygame Setup
 pygame.init()
+pygame.font.init()
 clock = pygame.time.Clock()
 level = Level()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -526,6 +533,13 @@ temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
 temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 
+# Universal Functions:
+textfont = pygame.font.Font("art_assets/coins_font.otf", 24)
+def update_display_coins(gnome):
+    coins = textfont.render('$' + str(gnome.money), True, BLACK)
+    screen.blit(coins, coins_pos)
+    print(gnome.money)
+    
 # Begin game
 while True:
     level.level_manager()
