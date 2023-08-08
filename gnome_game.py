@@ -26,7 +26,9 @@ plate_offset = (168,174)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
 counter_offset = (572,187)
-coins_pos = (780,640)
+coins_pos = (824,649)
+gnome_placard_pos = (646,616)
+placard_profile_pos = (640,619)
 
 # Dynamic Constants:
 animation_timer = 0
@@ -51,8 +53,8 @@ class Gnome(pygame.sprite.Sprite):
         for x in range(0,4):
             self.images.append(gnome_sheet.get_image(x, 96, 96, BLACK, scale = 1))
         self.image = self.images[1]
+        self.placard_profile = self.image
         self.rect = self.image.get_rect()
-        #self.rect = self.rect.inflate(-10,-45)
         self.mask = pygame.mask.from_surface(self.image) #might need to update in update method
     
     def control(self, x, y):
@@ -93,6 +95,8 @@ class Gnome(pygame.sprite.Sprite):
         if self.movey > 0:
             self.frame = 1
             self.image = self.images[self.frame]
+        
+        self.placard_profile = self.image
     
     def update_plate(self, action):
         """
@@ -410,6 +414,8 @@ class Level():
         screen.blit(plate_box.image, plate_offset)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
+        screen.blit(gnomelius.placard_profile, placard_profile_pos)
+        screen.blit(gnome_placard, gnome_placard_pos)
         update_display_coins(gnomelius)
          
         num_customers = len(customers.attendance)
@@ -476,6 +482,7 @@ SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
 BACKGROUND_COLOR = (183,168,153)
 BLACK = (0,0,0)
+BROWN = (46, 32, 6)
 
 # Pygame Setup
 pygame.init()
@@ -513,6 +520,8 @@ gnomelius = Gnome()
 gnomelius.rect.x, gnomelius.rect.y = 440, 220
 gnome_group = pygame.sprite.Group() 
 gnome_group.add(gnomelius)
+gnome_placard = pygame.image.load("art_assets/gnome/gnomelius_placard.png").convert_alpha()
+gnome_placard_rect = gnome_placard.get_rect(topleft = gnome_placard_pos)
 
 # Initialize the customers.
 customers = Customer_Group()
@@ -534,11 +543,10 @@ temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 
 # Universal Functions:
-textfont = pygame.font.Font("art_assets/coins_font.otf", 24)
+textfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
 def update_display_coins(gnome):
-    coins = textfont.render('$' + str(gnome.money), True, BLACK)
+    coins = textfont.render('$' + str(gnome.money), True, BROWN)
     screen.blit(coins, coins_pos)
-    print(gnome.money)
     
 # Begin game
 while True:
