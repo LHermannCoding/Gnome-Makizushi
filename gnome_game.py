@@ -16,16 +16,15 @@ title_gnome_x = 880
 title_gnome_y = 135
 start_pos = (200, 330)
 help_pos = (500, 330)
-nori_pos = (616, 368)
-rice_pos = (260, 450)
-crab_pos = (290, 311)
-shrimp_pos = (62,10)
-tamago_pos = (267,0)
-tuna_pos = (90,180)
+nori_pos = (600, 358)
+rice_pos = (285, 440)
+crab_pos = (306, 311)
+shrimp_pos = (45,-20)
+tamago_pos = (280,-20)
+tuna_pos = (120,170)
 salmon_pos = (776,455)
-unagi_pos = (80,300)
-plate_pos = (516,524)
-plate_offset = (168,174)
+unagi_pos = (90,310)
+plate_pos = (516,544)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
 counter_offset = (572,187)
@@ -222,6 +221,7 @@ class Plate():
                 self.contains.append("shrimp")
             elif item == "tamago":
                 self.contains.append("tamago")
+        print(self.contains)
     
     
 class Customer():
@@ -428,15 +428,15 @@ class Level():
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,crab_zone.rect):
                             gnomelius.update_plate("add_crab")
-                            gnomelius.plate.add_item("unagi")
+                            gnomelius.plate.add_item("crab")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,shrimp_zone.rect):
                             gnomelius.update_plate("add_shrimp")
-                            gnomelius.plate.add_item("unagi")
+                            gnomelius.plate.add_item("shrimp")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,tamago_zone.rect):
                             gnomelius.update_plate("add_tamago")
-                            gnomelius.plate.add_item("unagi")
+                            gnomelius.plate.add_item("tamago")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,trashcan_rect):
                             gnomelius.update_plate("empty_items")
@@ -461,16 +461,17 @@ class Level():
 
             
         screen.fill(BACKGROUND_COLOR)
+        #screen.blit(kitchen_floor, origin)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
         screen.blit(rice_zone.image, rice_pos)
         screen.blit(tuna_zone.image, tuna_pos)
         screen.blit(salmon_zone.image, salmon_pos)
         screen.blit(unagi_zone.image, unagi_pos)
-        screen.blit(crab_zone.image, plate_offset)
-        screen.blit(shrimp_zone.image, plate_offset)
-        screen.blit(tamago_zone.image, plate_offset)
-        screen.blit(plate_zone.image, plate_offset)
+        screen.blit(crab_zone.image, crab_pos)
+        screen.blit(shrimp_zone.image, shrimp_pos)
+        screen.blit(tamago_zone.image, tamago_pos)
+        screen.blit(plate_zone.image, plate_pos)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
         screen.blit(gnomelius.placard_profile, placard_profile_pos)
@@ -583,7 +584,7 @@ class Level():
 # Define Constants
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
-BACKGROUND_COLOR = (183,168,153)
+BACKGROUND_COLOR = (189, 138, 112)
 BLACK = (0,0,0)
 BROWN = (46, 32, 6)
 
@@ -610,6 +611,8 @@ title_gnome = pygame.image.load("art_assets/title_gnome.png")
 
 kitchen_base = pygame.image.load("art_assets/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
+
+#kitchen_floor = pygame.image.load("art_assets/kitchen_floor.png")
 
 end_base = pygame.image.load("art_assets/end_screen_mask.png").convert_alpha()
 end_base_mask = pygame.mask.from_surface(end_base)
