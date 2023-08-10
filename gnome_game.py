@@ -16,12 +16,15 @@ title_gnome_x = 880
 title_gnome_y = 135
 start_pos = (200, 330)
 help_pos = (500, 330)
-nori_pos = (162,265)
-rice_pos = (324,450)
-tuna_pos = (410,500)
-salmon_pos = (806,455)
-unagi_pos = (370,70)
-plate_pos = (168,160)
+nori_pos = (616, 368)
+rice_pos = (260, 450)
+crab_pos = (290, 311)
+shrimp_pos = (62,10)
+tamago_pos = (267,0)
+tuna_pos = (90,180)
+salmon_pos = (776,455)
+unagi_pos = (80,300)
+plate_pos = (516,524)
 plate_offset = (168,174)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
@@ -135,7 +138,13 @@ class Gnome(pygame.sprite.Sprite):
             elif action == "add_salmon":
                 gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_salmon.png").convert_alpha()
             elif action == "add_unagi":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_unagi.png").convert_alpha() 
+                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_unagi.png").convert_alpha()
+            elif action == "add_crab":
+                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_crab.png").convert_alpha() 
+            elif action == "add_shrimp":
+                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_shrimp.png").convert_alpha() 
+            elif action == "add_tamago":
+                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_tamago.png").convert_alpha() 
         elif action == "put_down":
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
             self.plate = None
@@ -147,8 +156,7 @@ class Gnome(pygame.sprite.Sprite):
             for x in range(0,4):
                 self.images.append(gnome_sheet.get_image(x, 96, 96, BLACK, scale = 1))
             self.image = self.images[self.frame]
-            
-            
+
 class Storage():
     """
     Class for the storage boxes that hold ingredients.
@@ -157,36 +165,33 @@ class Storage():
         self.type = type
         self.image = None
         if type == "unagi":
-            self.image = pygame.image.load("art_assets/storage/unagi_box.png").convert_alpha()
-            self.rect = self.image.get_rect(topleft = unagi_pos)
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.7, self.rect.h * 0.7))
+            self.image = pygame.image.load("art_assets/storage/unagi_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = unagi_pos)
         elif type == "salmon":
-            self.image = pygame.image.load("art_assets/storage/salmon_box.png").convert_alpha()
+            self.image = pygame.image.load("art_assets/storage/salmon_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = salmon_pos)
-            self.image = pygame.transform.rotate(self.image, 270)
-            self.rect = self.image.get_rect(topleft = salmon_pos)
+        elif type == "crab":
+            self.image = pygame.image.load("art_assets/storage/crab_zone.png").convert_alpha()
+            self.rect = self.image.get_rect(topleft = crab_pos)
+        elif type == "shrimp":
+            self.image = pygame.image.load("art_assets/storage/shrimp_zone.png").convert_alpha()
+            self.rect = self.image.get_rect(topleft = shrimp_pos)
+        elif type == "tamago":
+            self.image = pygame.image.load("art_assets/storage/tamago_zone.png").convert_alpha()
+            self.rect = self.image.get_rect(topleft = tamago_pos)
         elif type == "tuna":
-            self.image = pygame.image.load("art_assets/storage/tuna_box.png").convert_alpha()
-            self.rect = self.image.get_rect(topleft = tuna_pos)
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.7, self.rect.h * 0.7))
+            self.image = pygame.image.load("art_assets/storage/tuna_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = tuna_pos)
         elif type == "rice":
-            self.image = pygame.image.load("art_assets/storage/rice_box.png").convert_alpha()
-            self.rect = self.image.get_rect(topleft = rice_pos)
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.6, self.rect.h * 0.6))
+            self.image = pygame.image.load("art_assets/storage/rice_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = rice_pos)
         elif type == "nori":
-            self.image = pygame.image.load("art_assets/storage/nori_box.png").convert_alpha()
-            self.rect = self.image.get_rect(topleft = nori_pos)
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w, self.rect.h))
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.8, self.rect.h * 0.8))
+            self.image = pygame.image.load("art_assets/storage/nori_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = nori_pos)
         elif type == "plate":
-            self.image = pygame.image.load("art_assets/storage/plate_box.png").convert_alpha()
+            self.image = pygame.image.load("art_assets/storage/plate_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = plate_pos)
-            self.image = pygame.transform.smoothscale(self.image,(self.rect.w * 0.8, self.rect.h))
-    
+
     
 class Plate():
     """
@@ -211,6 +216,12 @@ class Plate():
                 self.contains.append("salmon")
             elif item == "unagi":
                 self.contains.append("unagi")
+            elif item == "crab":
+                self.contains.append("crab")
+            elif item == "shrimp":
+                self.contains.append("shrimp")
+            elif item == "tamago":
+                self.contains.append("tamago")
     
     
 class Customer():
@@ -226,6 +237,12 @@ class Customer():
             placard_text = pygame.image.load("art_assets/text/profile_text_salmon.png").convert_alpha()
         elif request == "unagi":
             placard_text = pygame.image.load("art_assets/text/profile_text_unagi.png").convert_alpha()
+        elif request == "crab":
+            placard_text = pygame.image.load("art_assets/text/profile_text_crab.png").convert_alpha()
+        elif request == "shrimp":
+            placard_text = pygame.image.load("art_assets/text/profile_text_shrimp.png").convert_alpha()
+        elif request == "tamago":
+            placard_text = pygame.image.load("art_assets/text/profile_text_tamago.png").convert_alpha()
         self.placard_text = placard_text
         
         if id == "horace":
@@ -272,7 +289,7 @@ class Customer_Group():
         self.attendance = {}
         self.arrival_order = []
         self.absent_names = ["horace", "jeb", "jordan", "mickey", "pickles", "tom"]
-        self.sushi_options = ["salmon", "tuna", "unagi"]
+        self.sushi_options = ["salmon", "tuna", "unagi", "crab", "shrimp", "tamago"]
         self.owed_payment = 0
         
     def add_order(self):
@@ -384,29 +401,41 @@ class Level():
                 elif event.key == pygame.K_SPACE:
                     complete = False
                     dominant_sound = True
-                    if pygame.Rect.colliderect(gnomelius.rect,plate_box.rect):
+                    if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect):
                         gnomelius.plate = Plate()
                         gnomelius.update_plate("pick_up")
                         complete = True
                     elif gnomelius.plate != None:
-                        if pygame.Rect.colliderect(gnomelius.rect,nori_box.rect):
+                        if pygame.Rect.colliderect(gnomelius.rect,nori_zone.rect):
                             gnomelius.update_plate("add_nori")
                             gnomelius.plate.add_item("nori")
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,rice_box.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,rice_zone.rect):
                             gnomelius.update_plate("add_rice")
                             gnomelius.plate.add_item("rice")
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,tuna_box.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,tuna_zone.rect):
                             gnomelius.update_plate("add_tuna")
                             gnomelius.plate.add_item("tuna")
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_box.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_zone.rect):
                             gnomelius.update_plate("add_salmon")
                             gnomelius.plate.add_item("salmon")
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,unagi_box.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,unagi_zone.rect):
                             gnomelius.update_plate("add_unagi")
+                            gnomelius.plate.add_item("unagi")
+                            complete = True
+                        elif pygame.Rect.colliderect(gnomelius.rect,crab_zone.rect):
+                            gnomelius.update_plate("add_crab")
+                            gnomelius.plate.add_item("unagi")
+                            complete = True
+                        elif pygame.Rect.colliderect(gnomelius.rect,shrimp_zone.rect):
+                            gnomelius.update_plate("add_shrimp")
+                            gnomelius.plate.add_item("unagi")
+                            complete = True
+                        elif pygame.Rect.colliderect(gnomelius.rect,tamago_zone.rect):
+                            gnomelius.update_plate("add_tamago")
                             gnomelius.plate.add_item("unagi")
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,trashcan_rect):
@@ -433,12 +462,15 @@ class Level():
             
         screen.fill(BACKGROUND_COLOR)
         screen.blit(kitchen_base, origin)
-        screen.blit(nori_box.image, nori_pos)
-        screen.blit(rice_box.image, rice_pos)
-        screen.blit(tuna_box.image, tuna_pos)
-        screen.blit(salmon_box.image, salmon_pos)
-        screen.blit(unagi_box.image, unagi_pos)
-        screen.blit(plate_box.image, plate_offset)
+        screen.blit(nori_zone.image, nori_pos)
+        screen.blit(rice_zone.image, rice_pos)
+        screen.blit(tuna_zone.image, tuna_pos)
+        screen.blit(salmon_zone.image, salmon_pos)
+        screen.blit(unagi_zone.image, unagi_pos)
+        screen.blit(crab_zone.image, plate_offset)
+        screen.blit(shrimp_zone.image, plate_offset)
+        screen.blit(tamago_zone.image, plate_offset)
+        screen.blit(plate_zone.image, plate_offset)
         screen.blit(trashcan, trashcan_pos)
         screen.blit(counter, counter_pos)
         screen.blit(gnomelius.placard_profile, placard_profile_pos)
@@ -600,12 +632,15 @@ gnome_placard_rect = gnome_placard.get_rect(topleft = gnome_placard_pos)
 customers = Customer_Group()
 
 # Create the ingredient boxes.
-nori_box = Storage("nori")
-rice_box = Storage("rice")
-tuna_box = Storage("tuna")
-salmon_box = Storage("salmon")
-unagi_box = Storage("unagi")
-plate_box = Storage("plate")
+nori_zone = Storage("nori")
+rice_zone = Storage("rice")
+tuna_zone = Storage("tuna")
+salmon_zone = Storage("salmon")
+unagi_zone = Storage("unagi")
+crab_zone = Storage("crab")
+shrimp_zone = Storage("shrimp")
+tamago_zone = Storage("tamago")
+plate_zone = Storage("plate")
 
 pygame.mixer.music.load("sound_assets/blue_bird.wav")
 #pygame.mixer.music.play()
