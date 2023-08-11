@@ -398,7 +398,8 @@ class Level():
             self.main_adding_in_pos[position] = True
             gnomelius.game_state = "tutorial"
             self.state = "tutorial"
-            pygame.mixer.music.play()    
+            pygame.mixer.music.load("sound_assets/mii_channel.wav")
+            pygame.mixer.music.play(-1)    
                     
                 
         pygame.display.update()
@@ -462,6 +463,8 @@ class Level():
                                 if removal:
                                     customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                     pygame.mixer.Sound.play(temp_serve)
+                                    pygame.mixer.music.load("sound_assets/flyday_chinatown.wav")
+                                    pygame.mixer.music.play(-1)
                                     gnomelius.money = 25
                                     customers.owed_payment = 0 
                                     self.main_removing_in_pos[removal] = True
@@ -636,6 +639,8 @@ class Level():
                                     self.main_removing_in_pos[removal] = True 
                                     gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
                                     customers.owed_payment = 0 
+                                else:
+                                    pygame.mixer.Sound.play(wrong_order)
                                 gnomelius.update_plate("put_down")                        
                     if dominant_sound:
                         if complete :
@@ -852,13 +857,12 @@ shrimp_zone = Storage("shrimp")
 tamago_zone = Storage("tamago")
 plate_zone = Storage("plate")
 
-pygame.mixer.music.load("sound_assets/blue_bird.wav")
-
 # Temp audio sound
 temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
 temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 gnome_oop = pygame.mixer.Sound("sound_assets/gnome_oop.wav")
+wrong_order = pygame.mixer.Sound("sound_assets/wrong_order.wav")
 
 # Universal Functions:
 coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
