@@ -367,7 +367,7 @@ class Level():
         global animation_timer
         global title_gnome_x
         global title_gnome_y
-        
+        begin = False
         screen.blit(title_bg, origin)  
         if title_gnome_x >= 580:
             title_gnome_x -= 3
@@ -385,13 +385,22 @@ class Level():
                 if animation_timer >= 100:
                     pos = pygame.mouse.get_pos()
                     if s.collidepoint(pos):
-                        position = customers.add_order("salmon")
-                        self.main_adding_in_pos[position] = True
-                        gnomelius.game_state = "tutorial"
-                        self.state = "tutorial"
-                        pygame.mixer.music.play()             
+                        begin = True
+                        break         
                     elif g.collidepoint(pos):
                         pygame.mixer.Sound.play(gnome_oop)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and animation_timer >= 100:
+                    begin = True
+                    break
+        if begin:
+            position = customers.add_order("salmon")
+            self.main_adding_in_pos[position] = True
+            gnomelius.game_state = "tutorial"
+            self.state = "tutorial"
+            pygame.mixer.music.play()    
+                    
+                
         pygame.display.update()
          
     def tutorial(self):
@@ -466,7 +475,7 @@ class Level():
                             pygame.mixer.Sound.play(temp_reject)
 
             
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(BG_COLOR_TUTORIAL)
         #screen.blit(kitchen_floor, origin)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
@@ -635,7 +644,7 @@ class Level():
                             pygame.mixer.Sound.play(temp_reject)
 
             
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(BG_COLOR_MAIN)
         #screen.blit(kitchen_floor, origin)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
@@ -707,7 +716,7 @@ class Level():
         
         pygame.display.update()
         
-        if gnomelius.money >= 50:
+        if gnomelius.money >= 200:
             gnomelius.steps = 3
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
@@ -742,7 +751,7 @@ class Level():
                     gnomelius.game_state = "main_game"
                     self.state = "main_game"
                     
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(BG_COLOR_MAIN)
         screen.blit(end_base, origin)
         screen.blit(gnomelius.placard_profile, placard_profile_pos)
         screen.blit(gnome_placard, gnome_placard_pos)
@@ -768,7 +777,8 @@ class Level():
 # Define Constants
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
-BACKGROUND_COLOR = (189, 138, 112)
+BG_COLOR_TUTORIAL = (175, 111, 149)
+BG_COLOR_MAIN = (143, 103, 75)
 BLACK = (0,0,0)
 BROWN = (46, 32, 6)
 
@@ -856,7 +866,7 @@ winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
 msgfont = pygame.font.Font("art_assets/coins_font.ttf", 36)
 
 def update_display_coins(gnome):
-    coins = coinfont.render('$' + str(gnome.money) + " / $250", True, BROWN)
+    coins = coinfont.render('$' + str(gnome.money) + " / $200", True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
