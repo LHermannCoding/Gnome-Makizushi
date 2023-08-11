@@ -36,27 +36,27 @@ win_pos = (188, 500)
 # Tutorial-Specific Constants
 tutorial_placard_x = 0
 tutorial_placard_y = -438
-tut_1_gnome_pos =
-tut_2_gnome_pos = 
-tut_3_gnome_pos = 
-tut_4_gnome_pos = 
-tut_1_arrow_pos =
-tut_2_arrow_pos = 
-tut_3_arrow_pos = 
-tut_4_arrow_pos = 
-tut_1_msg1_pos =
-tut_1_msg1_pos =
-tut_2_msg2_pos =
-tut_2_msg2_pos =
-tut_3_msg3_pos =
-tut_3_msg3_pos =
-tut_4_msg4_pos =
-tut_4_msg4_pos =
+tut_1_gnome_pos = (620,450)
+tut_2_gnome_pos = (720,282)
+tut_3_gnome_pos = (448,450)
+tut_4_gnome_pos = (688,448)
+tut_5_gnome_pos = (690,200)
+tut_1_arrow_pos = (577,480)
+tut_2_arrow_pos = (726,382)
+tut_3_arrow_pos = (395,474)
+tut_4_arrow_pos = (780,474)
+tut_5_arrow_pos_1 = (620,222)
+tut_5_arrow_pos_2 = (800,222)
+green_arrow_pos = (175, 635)
+tut_msg1_pos = (57,126)
+tut_msg2_pos = (57,186)
+tut_msg3_pos = (57,246)
+tut_msg4_pos = (57,306)
 
 # Dynamic Constants:
 animation_timer = 0
 win_animation_timer = 0
-payment_max = 2000
+payment_max = 2500
 
 class Gnome(pygame.sprite.Sprite):
     """
@@ -303,7 +303,7 @@ class Customer():
         Calculate how much will be paid out for fulfillment or order based on 
         time spent waiting for dish.
         """
-        self.payment = max(10, int(self.payment * (self.payment_timer / payment_max)))
+        self.payment = max(20, int(self.payment * (self.payment_timer / payment_max)))
 
 
 class Customer_Group():
@@ -432,35 +432,37 @@ class Level():
                 elif event.key == pygame.K_SPACE:
                     complete = False
                     dominant_sound = True
-                    if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect):
+                    if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect) and self.tutorial_stage == 1:
                         if not gnomelius.plate:
                             gnomelius.plate = Plate()
                             gnomelius.update_plate("pick_up")
+                            self.tutorial_stage = 2
                             complete = True
                     elif gnomelius.plate != None:
-                        if pygame.Rect.colliderect(gnomelius.rect,nori_zone.rect):
+                        if pygame.Rect.colliderect(gnomelius.rect,nori_zone.rect) and self.tutorial_stage == 2:
                             gnomelius.update_plate("add_nori")
                             gnomelius.plate.add_item("nori")
+                            self.tutorial_stage = 3
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,rice_zone.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,rice_zone.rect) and self.tutorial_stage == 3:
                             gnomelius.update_plate("add_rice")
                             gnomelius.plate.add_item("rice")
+                            self.tutorial_stage = 4
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_zone.rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_zone.rect) and self.tutorial_stage == 4:
                             gnomelius.update_plate("add_salmon")
                             gnomelius.plate.add_item("salmon")
+                            self.tutorial_stage = 5
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,trashcan_rect):
-                            gnomelius.update_plate("empty_items")
-                            gnomelius.plate = Plate()
-                            complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,counter_rect):
+                        elif pygame.Rect.colliderect(gnomelius.rect,counter_rect) and self.tutorial_stage == 5:
                             if len(gnomelius.plate.contains) == 3:
                                 removal = customers.fulfill_order(gnomelius.plate.contains[2])
                                 if removal:
+                                    customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                     pygame.mixer.Sound.play(temp_serve)
                                     gnomelius.money = 25
                                     customers.owed_payment = 0 
+                                    self.main_removing_in_pos[removal] = True
                                     gnomelius.game_state = "main_game"
                                     self.state = "main_game"
                                 gnomelius.update_plate("put_down")                        
@@ -504,40 +506,57 @@ class Level():
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
             
+        if tutorial_placard_y <= 0 and title_gnome_x <= 0:
+            tutorial_placard_y += 8
+        elif self.tutorial_stage == 0 and title_gnome_x <= -300:
+            self.tutorial_stage = 1
+        screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
+        if self.tutorial_stage == 1:
+            add_tutorial_message("Welcome! Please begin", tut_msg1_pos)
+            add_tutorial_message("by grabbing a plate.", tut_msg2_pos)
+            add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
+            screen.blit(tutorial_gnome,tut_1_gnome_pos)
+            screen.blit(tutorial_arrow_1,tut_1_arrow_pos)
+        elif self.tutorial_stage == 2:
+            add_tutorial_message("Nice! Next, please add a base", tut_msg1_pos)
+            add_tutorial_message("of nori to your plate.", tut_msg2_pos)
+            add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
+            screen.blit(tutorial_gnome,tut_2_gnome_pos)
+            screen.blit(tutorial_arrow_2,tut_2_arrow_pos)
+        elif self.tutorial_stage == 3:
+            add_tutorial_message("Great! Now put some rice", tut_msg1_pos)
+            add_tutorial_message("on top of your plated nori.", tut_msg2_pos)
+            add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
+            screen.blit(tutorial_gnome,tut_3_gnome_pos)
+            screen.blit(tutorial_arrow_3,tut_3_arrow_pos)
+        elif self.tutorial_stage == 4:
+            add_tutorial_message("Once you have a base of", tut_msg1_pos)
+            add_tutorial_message("nori and rice, finish your", tut_msg2_pos)
+            add_tutorial_message("dish with desired protein.", tut_msg3_pos)
+            add_tutorial_message("(use spacebar for actions)", tut_msg4_pos)
+            screen.blit(tutorial_gnome,tut_4_gnome_pos)
+            screen.blit(tutorial_arrow_4,tut_4_arrow_pos)
+            screen.blit(green_arrow, green_arrow_pos)
+        elif self.tutorial_stage == 5:
+            add_tutorial_message("Excellent! You have finished", tut_msg1_pos)
+            add_tutorial_message("the dish. Bring the plate to", tut_msg2_pos)
+            add_tutorial_message("the counter and serve!", tut_msg3_pos)
+            add_tutorial_message("(use spacebar for actions)", tut_msg4_pos)
+            screen.blit(tutorial_gnome,tut_5_gnome_pos)
+            screen.blit(tutorial_arrow_5,tut_5_arrow_pos_1)
+            screen.blit(tutorial_arrow_5,tut_5_arrow_pos_2)
+            screen.blit(green_arrow, green_arrow_pos)
+        
         gnomelius.update()
         gnome_group.draw(screen)
-        
         if title_gnome_x >= -360:
-            title_gnome_x -= 12
+            title_gnome_x -= 10
             screen.blit(title_gnome, (title_gnome_x,title_gnome_y))
-            
-        if tutorial_placard_y <= 0 and title_gnome_x <= 30:
-            tutorial_placard_y += 8
-        elif self.tutorial_stage == 0:
-            self.tutorial_stage = 1
-        
-        if self.tutorial_stage == 1:
-            add_tutorial_message
-            add_tutorial_message
-            screen.blit(tutorial_gnome,)
-        elif self.tutorial_stage == 2:
-            add_tutorial_message
-            add_tutorial_message
-            screen.blit(tutorial_gnome,)
-        elif self.tutorial_stage == 3:
-            add_tutorial_message
-            add_tutorial_message
-            screen.blit(tutorial_gnome,)
-        elif self.tutorial_stage == 4:
-            add_tutorial_message
-            add_tutorial_message
-            screen.blit(tutorial_gnome,)
-        screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
         pygame.display.update()
         
-        
-        
     def main_game(self):
+        global tutorial_placard_x
+        global tutorial_placard_y
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -646,8 +665,8 @@ class Level():
             position = customers.add_order()
             self.main_adding_in_pos[position] = True
         if num_customers < 4:
-            temp_rand = random.randint(1, 480)
-            if temp_rand == 480:
+            temp_rand = random.randint(1, 430)
+            if temp_rand == 430:
                 position = customers.add_order()
                 if position:
                     self.main_adding_in_pos[position] = True
@@ -672,7 +691,7 @@ class Level():
                     customers.attendance[removal_pos].person_pos_y -= 1
                 else:
                     still_removing += 1
-                if customers.attendance[removal_pos].placard_pos_y < 920:
+                if customers.attendance[removal_pos].placard_pos_y < 870:
                     customers.attendance[removal_pos].placard_pos_y += 1
                 else:
                     still_removing += 1
@@ -685,20 +704,21 @@ class Level():
             screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
+        
+        if tutorial_placard_y >= -600:
+            tutorial_placard_y -= 5
+            screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
+            
             
         gnomelius.update()
         gnome_group.draw(screen)
         
         pygame.display.update()
         
-        if gnomelius.money >= 100:
+        if gnomelius.money >= 250:
             gnomelius.steps = 3
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
-        
-        if tutorial_placard_y >= -438:
-            tutorial_placard_y -= 12
-            screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
         
     def end_game(self):
         for event in pygame.event.get():
@@ -781,8 +801,11 @@ tutorial_placard = pygame.image.load("art_assets/tutorial_placard.png").convert_
 
 tutorial_arrow_1 = pygame.image.load("art_assets/arrow_down.png").convert_alpha()
 tutorial_arrow_2 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
-tutorial_arrow_3 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
+tutorial_arrow_3 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
 tutorial_arrow_4 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
+tutorial_arrow_5 = pygame.image.load("art_assets/arrow_up.png").convert_alpha()
+
+green_arrow = pygame.image.load("art_assets/arrow_left_green.png").convert_alpha()
 
 tutorial_base = pygame.image.load("art_assets/kitchen_mask_tutorial.png").convert_alpha()
 tutorial_base_mask = pygame.mask.from_surface(tutorial_base)
@@ -837,7 +860,7 @@ winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
 msgfont = pygame.font.Font("art_assets/coins_font.ttf", 36)
 
 def update_display_coins(gnome):
-    coins = coinfont.render('$' + str(gnome.money), True, BROWN)
+    coins = coinfont.render('$' + str(gnome.money) + " / $250", True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
