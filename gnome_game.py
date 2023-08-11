@@ -14,8 +14,6 @@ state management, and more.
 origin = (0,0)
 title_gnome_x = 880
 title_gnome_y = 135
-tutorial_placard_x = 0
-tutorial_placard_y = -438
 start_pos = (200, 330)
 help_pos = (500, 330)
 nori_pos = (600, 358)
@@ -34,6 +32,26 @@ coins_pos = (824,649)
 gnome_placard_pos = (646,616)
 placard_profile_pos = (640,619)
 win_pos = (188, 500)
+
+# Tutorial-Specific Constants
+tutorial_placard_x = 0
+tutorial_placard_y = -438
+tut_1_gnome_pos =
+tut_2_gnome_pos = 
+tut_3_gnome_pos = 
+tut_4_gnome_pos = 
+tut_1_arrow_pos =
+tut_2_arrow_pos = 
+tut_3_arrow_pos = 
+tut_4_arrow_pos = 
+tut_1_msg1_pos =
+tut_1_msg1_pos =
+tut_2_msg2_pos =
+tut_2_msg2_pos =
+tut_3_msg3_pos =
+tut_3_msg3_pos =
+tut_4_msg4_pos =
+tut_4_msg4_pos =
 
 # Dynamic Constants:
 animation_timer = 0
@@ -343,6 +361,7 @@ class Level():
     """
     def __init__(self):
         self.state = 'title'
+        self.tutorial_stage = 0
         self.main_adding_in_pos = {1: False, 2: False, 3: False, 4: False}
         self.main_removing_in_pos = {1: False, 2: False, 3: False, 4: False}
         
@@ -464,7 +483,7 @@ class Level():
         screen.blit(gnomelius.placard_profile, placard_profile_pos)
         screen.blit(gnome_placard, gnome_placard_pos)
         update_display_coins(gnomelius)
-            
+        
         for add_pos, add_bool in self.main_adding_in_pos.items():
             if add_bool == True:
                 still_adding = 0
@@ -494,8 +513,28 @@ class Level():
             
         if tutorial_placard_y <= 0 and title_gnome_x <= 30:
             tutorial_placard_y += 8
+        elif self.tutorial_stage == 0:
+            self.tutorial_stage = 1
+        
+        if self.tutorial_stage == 1:
+            add_tutorial_message
+            add_tutorial_message
+            screen.blit(tutorial_gnome,)
+        elif self.tutorial_stage == 2:
+            add_tutorial_message
+            add_tutorial_message
+            screen.blit(tutorial_gnome,)
+        elif self.tutorial_stage == 3:
+            add_tutorial_message
+            add_tutorial_message
+            screen.blit(tutorial_gnome,)
+        elif self.tutorial_stage == 4:
+            add_tutorial_message
+            add_tutorial_message
+            screen.blit(tutorial_gnome,)
         screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
         pygame.display.update()
+        
         
         
     def main_game(self):
@@ -736,7 +775,14 @@ help_rect = help_button.get_rect(topleft = trashcan_pos)
 title_bg = pygame.image.load("art_assets/title_background.png").convert_alpha()
 title_gnome = pygame.image.load("art_assets/title_gnome.png").convert_alpha()
 
+tutorial_gnome = pygame.image.load("art_assets/tutorial_gnome.png").convert_alpha()
+
 tutorial_placard = pygame.image.load("art_assets/tutorial_placard.png").convert_alpha()
+
+tutorial_arrow_1 = pygame.image.load("art_assets/arrow_down.png").convert_alpha()
+tutorial_arrow_2 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
+tutorial_arrow_3 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
+tutorial_arrow_4 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
 
 tutorial_base = pygame.image.load("art_assets/kitchen_mask_tutorial.png").convert_alpha()
 tutorial_base_mask = pygame.mask.from_surface(tutorial_base)
@@ -788,12 +834,17 @@ temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 # Universal Functions:
 coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
 winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
+msgfont = pygame.font.Font("art_assets/coins_font.ttf", 36)
+
 def update_display_coins(gnome):
     coins = coinfont.render('$' + str(gnome.money), True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
     screen.blit(win, win_pos)
+def add_tutorial_message(message, message_pos):
+    message = msgfont.render(message, True, BLACK)
+    screen.blit(message, message_pos)
     
 # Begin game
 while True:
