@@ -14,8 +14,7 @@ state management, and more.
 origin = (0,0)
 title_gnome_x = 880
 title_gnome_y = 135
-start_pos = (200, 330)
-help_pos = (500, 330)
+start_pos = (350, 315)
 nori_pos = (600, 358)
 rice_pos = (285, 440)
 crab_pos = (306, 311)
@@ -31,7 +30,8 @@ counter_offset = (572,187)
 coins_pos = (824,649)
 gnome_placard_pos = (646,616)
 placard_profile_pos = (640,619)
-win_pos = (188, 500)
+win_pos = (188, 440)
+again_pos = (100, 510)
 
 # Tutorial-Specific Constants
 tutorial_placard_x = 0
@@ -47,11 +47,11 @@ tut_3_arrow_pos = (395,474)
 tut_4_arrow_pos = (780,474)
 tut_5_arrow_pos_1 = (620,222)
 tut_5_arrow_pos_2 = (800,222)
-green_arrow_pos = (175, 635)
-tut_msg1_pos = (57,126)
-tut_msg2_pos = (57,186)
-tut_msg3_pos = (57,246)
-tut_msg4_pos = (57,306)
+green_arrow_pos = (190, 630)
+tut_msg1_pos = (57,116)
+tut_msg2_pos = (57,176)
+tut_msg3_pos = (57,236)
+tut_msg4_pos = (57,296)
 
 # Dynamic Constants:
 animation_timer = 0
@@ -145,7 +145,6 @@ class Gnome(pygame.sprite.Sprite):
         Update gnome spritesheet based on plate contents.
         """
         gnome_spritesheet = None
-        #print((self.plate.contains))
         if action == "pick_up" and self.plate != None:
             gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
             self.plate = Plate()
@@ -243,7 +242,6 @@ class Plate():
                 self.contains.append("shrimp")
             elif item == "tamago":
                 self.contains.append("tamago")
-        print(self.contains)
     
     
 class Customer():
@@ -369,6 +367,7 @@ class Level():
         global animation_timer
         global title_gnome_x
         global title_gnome_y
+        
         screen.blit(title_bg, origin)  
         if title_gnome_x >= 580:
             title_gnome_x -= 3
@@ -377,9 +376,6 @@ class Level():
             
         if animation_timer >= 50:
             s = screen.blit(start_button, start_pos)
-        if animation_timer >= 100:
-            h = screen.blit(help_button, help_pos)
-            
         g = screen.blit(title_gnome, (title_gnome_x, title_gnome_y))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -394,11 +390,8 @@ class Level():
                         gnomelius.game_state = "tutorial"
                         self.state = "tutorial"
                         pygame.mixer.music.play()             
-                    elif h.collidepoint(pos):
-                        print("temp for tutorial placeholder")
                     elif g.collidepoint(pos):
-                        #play_sound?
-                        print("temp sound placeholder honk")
+                        pygame.mixer.Sound.play(gnome_oop)
         pygame.display.update()
          
     def tutorial(self):
@@ -506,7 +499,7 @@ class Level():
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
             
-        if tutorial_placard_y <= 0 and title_gnome_x <= 0:
+        if tutorial_placard_y <= 0 and title_gnome_x <= -60:
             tutorial_placard_y += 8
         elif self.tutorial_stage == 0 and title_gnome_x <= -300:
             self.tutorial_stage = 1
@@ -661,7 +654,7 @@ class Level():
         update_display_coins(gnomelius)
          
         num_customers = len(customers.attendance)
-        if num_customers == 0:
+        if num_customers < 2:
             position = customers.add_order()
             self.main_adding_in_pos[position] = True
         if num_customers < 4:
@@ -687,11 +680,11 @@ class Level():
         for removal_pos, removal_bool in self.main_removing_in_pos.items():
             still_removing = 0
             if removal_bool:
-                if customers.attendance[removal_pos].person_pos_y > -100:
+                if customers.attendance[removal_pos].person_pos_y > -90:
                     customers.attendance[removal_pos].person_pos_y -= 1
                 else:
                     still_removing += 1
-                if customers.attendance[removal_pos].placard_pos_y < 870:
+                if customers.attendance[removal_pos].placard_pos_y < 800:
                     customers.attendance[removal_pos].placard_pos_y += 1
                 else:
                     still_removing += 1
@@ -709,13 +702,12 @@ class Level():
             tutorial_placard_y -= 5
             screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
             
-            
         gnomelius.update()
         gnome_group.draw(screen)
         
         pygame.display.update()
         
-        if gnomelius.money >= 250:
+        if gnomelius.money >= 50:
             gnomelius.steps = 3
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
@@ -743,6 +735,12 @@ class Level():
                     gnomelius.control(0, gnomelius.steps)
                 elif event.key == pygame.K_DOWN:
                     gnomelius.control(0, -gnomelius.steps)
+                elif event.key == pygame.K_SPACE:
+                    gnomelius.money = 0
+                    gnomelius.rect.x = 697
+                    gnomelius.rect.y = 234
+                    gnomelius.game_state = "main_game"
+                    self.state = "main_game"
                     
         screen.fill(BACKGROUND_COLOR)
         screen.blit(end_base, origin)
@@ -789,8 +787,6 @@ gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
 
 start_button = pygame.image.load("art_assets/buttons/start.png").convert_alpha()
 start_rect = start_button.get_rect(topleft = trashcan_pos)
-help_button = pygame.image.load("art_assets/buttons/help.png").convert_alpha()
-help_rect = help_button.get_rect(topleft = trashcan_pos)
 
 title_bg = pygame.image.load("art_assets/title_background.png").convert_alpha()
 title_gnome = pygame.image.load("art_assets/title_gnome.png").convert_alpha()
@@ -847,12 +843,12 @@ tamago_zone = Storage("tamago")
 plate_zone = Storage("plate")
 
 pygame.mixer.music.load("sound_assets/blue_bird.wav")
-#pygame.mixer.music.play()
 
 # Temp audio sound
 temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
 temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
+gnome_oop = pygame.mixer.Sound("sound_assets/gnome_oop.wav")
 
 # Universal Functions:
 coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
@@ -864,7 +860,9 @@ def update_display_coins(gnome):
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
+    again = winfont.render('Press spacebar to head back into the kitchen!', True, BROWN)
     screen.blit(win, win_pos)
+    screen.blit(again, again_pos)
 def add_tutorial_message(message, message_pos):
     message = msgfont.render(message, True, BLACK)
     screen.blit(message, message_pos)
