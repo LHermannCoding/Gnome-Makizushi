@@ -1,5 +1,5 @@
 import pygame
-import spritesheet
+from assets import (spritesheet, art_assets, sound_assets)
 import random
 
 from sys import exit
@@ -54,7 +54,8 @@ min_customers = 2
 max_customers = 4
 min_overlap = 0
 max_overlap = 2
-ending_profit = 250
+ending_profit = 200
+max_profit = 900
 RAND_CYCLE = 400
 
 # Tutorial-Specific Constants
@@ -103,7 +104,7 @@ class Gnome(pygame.sprite.Sprite):
         self.frame = 0
         self.images = []
         self.game_state = 'main_game'
-        gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
+        gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet.png").convert_alpha()
         gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
         for x in range(0,4):
             self.images.append(gnome_sheet.get_image(x, 96, 96, BLACK, scale = 1))
@@ -175,30 +176,30 @@ class Gnome(pygame.sprite.Sprite):
         """
         gnome_spritesheet = None
         if action == "pick_up" and self.plate != None:
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
+            gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_plate.png").convert_alpha()
             self.plate = Plate()
         elif action == "add_nori" and len(self.plate.contains) == 0:
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_nori.png").convert_alpha()        
+            gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_nori.png").convert_alpha()        
         elif action == "add_rice" and len(self.plate.contains) == 1:
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_rice.png").convert_alpha() 
+            gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_rice.png").convert_alpha() 
         elif len(self.plate.contains) == 2: 
             if action == "add_tuna":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_tuna.png").convert_alpha() 
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_tuna.png").convert_alpha() 
             elif action == "add_salmon":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_salmon.png").convert_alpha()
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_salmon.png").convert_alpha()
             elif action == "add_unagi":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_unagi.png").convert_alpha()
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_unagi.png").convert_alpha()
             elif action == "add_crab":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_crab.png").convert_alpha() 
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_crab.png").convert_alpha() 
             elif action == "add_shrimp":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_shrimp.png").convert_alpha() 
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_shrimp.png").convert_alpha() 
             elif action == "add_tamago":
-                gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_tamago.png").convert_alpha() 
+                gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_tamago.png").convert_alpha() 
         elif action == "put_down":
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
+            gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet.png").convert_alpha()
             self.plate = None
         elif action == "empty_items":
-            gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet_plate.png").convert_alpha()
+            gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet_plate.png").convert_alpha()
         if gnome_spritesheet != None:
             self.images = []
             gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
@@ -214,31 +215,31 @@ class Storage():
         self.type = type
         self.image = None
         if type == "unagi":
-            self.image = pygame.image.load("art_assets/storage/unagi_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/unagi_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = unagi_pos)
         elif type == "salmon":
-            self.image = pygame.image.load("art_assets/storage/salmon_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/salmon_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = salmon_pos)
         elif type == "crab":
-            self.image = pygame.image.load("art_assets/storage/crab_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/crab_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = crab_pos)
         elif type == "shrimp":
-            self.image = pygame.image.load("art_assets/storage/shrimp_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/shrimp_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = shrimp_pos)
         elif type == "tamago":
-            self.image = pygame.image.load("art_assets/storage/tamago_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/tamago_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = tamago_pos)
         elif type == "tuna":
-            self.image = pygame.image.load("art_assets/storage/tuna_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/tuna_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = tuna_pos)
         elif type == "rice":
-            self.image = pygame.image.load("art_assets/storage/rice_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/rice_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = rice_pos)
         elif type == "nori":
-            self.image = pygame.image.load("art_assets/storage/nori_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/nori_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = nori_pos)
         elif type == "plate":
-            self.image = pygame.image.load("art_assets/storage/plate_zone.png").convert_alpha()
+            self.image = pygame.image.load("assets/art_assets/storage/plate_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = plate_pos)
 
 class Plate():
@@ -279,40 +280,40 @@ class Customer():
         self.payment_timer = payment_max
         self.request = request
         if request == "tuna":
-            placard_text = pygame.image.load("art_assets/text/profile_text_tuna.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_tuna.png").convert_alpha()
         elif request == "salmon":
-            placard_text = pygame.image.load("art_assets/text/profile_text_salmon.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_salmon.png").convert_alpha()
         elif request == "unagi":
-            placard_text = pygame.image.load("art_assets/text/profile_text_unagi.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_unagi.png").convert_alpha()
         elif request == "crab":
-            placard_text = pygame.image.load("art_assets/text/profile_text_crab.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_crab.png").convert_alpha()
         elif request == "shrimp":
-            placard_text = pygame.image.load("art_assets/text/profile_text_shrimp.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_shrimp.png").convert_alpha()
         elif request == "tamago":
-            placard_text = pygame.image.load("art_assets/text/profile_text_tamago.png").convert_alpha()
+            placard_text = pygame.image.load("assets/art_assets/text/profile_text_tamago.png").convert_alpha()
         self.placard_text = placard_text
         
         if id == "horace":
-            temp_sheet = pygame.image.load("art_assets/customers/horace/spritesheet_horace.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/horace/horace_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/horace/spritesheet_horace.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/horace/horace_profile.png").convert_alpha()
         elif id == "jeb":
-            temp_sheet = pygame.image.load("art_assets/customers/jeb/spritesheet_jeb.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/jeb/jeb_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/jeb/spritesheet_jeb.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/jeb/jeb_profile.png").convert_alpha()
         elif id == "jordan":
-            temp_sheet = pygame.image.load("art_assets/customers/jordan/spritesheet_jordan.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/jordan/jordan_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/jordan/spritesheet_jordan.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/jordan/jordan_profile.png").convert_alpha()
         elif id == "mickey":
-            temp_sheet = pygame.image.load("art_assets/customers/mickey/spritesheet_mickey.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/mickey/mickey_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/mickey/spritesheet_mickey.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/mickey/mickey_profile.png").convert_alpha()
         elif id == "pickles":
-            temp_sheet = pygame.image.load("art_assets/customers/pickles/spritesheet_pickles.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/pickles/pickles_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/pickles/spritesheet_pickles.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/pickles/pickles_profile.png").convert_alpha()
         elif id == "tom":
-            temp_sheet = pygame.image.load("art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/tom/tom_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/tom/tom_profile.png").convert_alpha()
         elif id == "stel":
-            temp_sheet = pygame.image.load("art_assets/customers/stel/spritesheet_stel.png").convert_alpha()
-            placard_profile = pygame.image.load("art_assets/customers/stel/stel_profile.png").convert_alpha()
+            temp_sheet = pygame.image.load("assets/art_assets/customers/stel/spritesheet_stel.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/stel/stel_profile.png").convert_alpha()
         self.placard_profile = placard_profile
         self.person_animation = []
         customer_spritesheet = spritesheet.SpriteSheet(temp_sheet)
@@ -433,7 +434,7 @@ class Level():
             self.main_adding_in_pos[position] = True
             gnomelius.game_state = "tutorial"
             self.state = "tutorial"
-            pygame.mixer.music.load("sound_assets/mii_channel.wav")
+            pygame.mixer.music.load("assets/sound_assets/mii_channel.wav")
             pygame.mixer.music.play(-1)    
                     
         pygame.display.update()
@@ -498,7 +499,7 @@ class Level():
                             if removal:
                                 customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                 pygame.mixer.Sound.play(temp_serve)
-                                pygame.mixer.music.load("sound_assets/flyday_chinatown.wav")
+                                pygame.mixer.music.load("assets/sound_assets/flyday_chinatown.wav")
                                 pygame.mixer.music.play(-1)
                                 gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
                                 customers.owed_payment = 0 
@@ -598,6 +599,7 @@ class Level():
         """
         global tutorial_placard_x
         global tutorial_placard_y
+        global ending_profit
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -748,6 +750,8 @@ class Level():
             screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
             
         if gnomelius.money >= ending_profit:
+            if ending_profit < max_profit:
+                ending_profit += 100
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
             
@@ -822,29 +826,29 @@ pygame.display.set_caption('A Gnome Game')
 pygame.mouse.set_visible(True)
 
 # Art asset loading and rectangle creation.
-gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
+gnome_spritesheet = pygame.image.load("assets/art_assets/gnome/gnomesheet.png").convert_alpha()
 gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
-start_button = pygame.image.load("art_assets/buttons/start.png").convert_alpha()
+start_button = pygame.image.load("assets/art_assets/buttons/start.png").convert_alpha()
 start_rect = start_button.get_rect(topleft = trashcan_pos)
-title_bg = pygame.image.load("art_assets/screens/title_background.png").convert_alpha()
-title_gnome = pygame.image.load("art_assets/gnome/title_gnome.png").convert_alpha()
-tutorial_gnome = pygame.image.load("art_assets/gnome/tutorial_gnome.png").convert_alpha()
-tutorial_placard = pygame.image.load("art_assets/screens/tutorial_placard.png").convert_alpha()
-tutorial_arrow_1 = pygame.image.load("art_assets/arrows/arrow_down.png").convert_alpha()
-tutorial_arrow_2 = pygame.image.load("art_assets/arrows/arrow_left.png").convert_alpha()
-tutorial_arrow_3 = pygame.image.load("art_assets/arrows/arrow_left.png").convert_alpha()
-tutorial_arrow_4 = pygame.image.load("art_assets/arrows/arrow_right.png").convert_alpha()
-tutorial_arrow_5 = pygame.image.load("art_assets/arrows/arrow_up.png").convert_alpha()
-green_arrow = pygame.image.load("art_assets/arrows/arrow_left_green.png").convert_alpha()
-tutorial_base = pygame.image.load("art_assets/screens/kitchen_mask_tutorial.png").convert_alpha()
+title_bg = pygame.image.load("assets/art_assets/screens/title_background.png").convert_alpha()
+title_gnome = pygame.image.load("assets/art_assets/gnome/title_gnome.png").convert_alpha()
+tutorial_gnome = pygame.image.load("assets/art_assets/gnome/tutorial_gnome.png").convert_alpha()
+tutorial_placard = pygame.image.load("assets/art_assets/screens/tutorial_placard.png").convert_alpha()
+tutorial_arrow_1 = pygame.image.load("assets/art_assets/arrows/arrow_down.png").convert_alpha()
+tutorial_arrow_2 = pygame.image.load("assets/art_assets/arrows/arrow_left.png").convert_alpha()
+tutorial_arrow_3 = pygame.image.load("assets/art_assets/arrows/arrow_left.png").convert_alpha()
+tutorial_arrow_4 = pygame.image.load("assets/art_assets/arrows/arrow_right.png").convert_alpha()
+tutorial_arrow_5 = pygame.image.load("assets/art_assets/arrows/arrow_up.png").convert_alpha()
+green_arrow = pygame.image.load("assets/art_assets/arrows/arrow_left_green.png").convert_alpha()
+tutorial_base = pygame.image.load("assets/art_assets/screens/kitchen_mask_tutorial.png").convert_alpha()
 tutorial_base_mask = pygame.mask.from_surface(tutorial_base)
-kitchen_base = pygame.image.load("art_assets/screens/kitchen_mask.png").convert_alpha()
+kitchen_base = pygame.image.load("assets/art_assets/screens/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
-end_base = pygame.image.load("art_assets/screens/end_screen_mask.png").convert_alpha()
+end_base = pygame.image.load("assets/art_assets/screens/end_screen_mask.png").convert_alpha()
 end_base_mask = pygame.mask.from_surface(end_base)
-trashcan = pygame.image.load("art_assets/storage/trashcan.png").convert_alpha()
+trashcan = pygame.image.load("assets/art_assets/storage/trashcan.png").convert_alpha()
 trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)          
-counter = pygame.image.load("art_assets/storage/counter.png").convert_alpha()
+counter = pygame.image.load("assets/art_assets/storage/counter.png").convert_alpha()
 counter_rect = counter.get_rect(topleft = counter_offset)
 
 # Create the main gnome player sprite:
@@ -852,7 +856,7 @@ gnomelius = Gnome()
 gnomelius.rect.x, gnomelius.rect.y = gnome_start_x, gnome_start_y # Beginning pos in kitchen center.
 gnome_group = pygame.sprite.Group() 
 gnome_group.add(gnomelius)
-gnome_placard = pygame.image.load("art_assets/gnome/gnomelius_placard.png").convert_alpha()
+gnome_placard = pygame.image.load("assets/art_assets/gnome/gnomelius_placard.png").convert_alpha()
 gnome_placard_rect = gnome_placard.get_rect(topleft = gnome_placard_pos)
 
 # Initialize customers instance:
@@ -870,19 +874,19 @@ tamago_zone = Storage("tamago")
 plate_zone = Storage("plate")
 
 # Load in initial audio:
-temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
-temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
-temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
-gnome_oop = pygame.mixer.Sound("sound_assets/gnome_oop.wav")
-wrong_order = pygame.mixer.Sound("sound_assets/wrong_order.wav")
+temp_ding = pygame.mixer.Sound("assets/sound_assets/temp_ding.wav")
+temp_reject = pygame.mixer.Sound("assets/sound_assets/temp_reject.wav")
+temp_serve = pygame.mixer.Sound("assets/sound_assets/temp_serve.wav")
+gnome_oop = pygame.mixer.Sound("assets/sound_assets/gnome_oop.wav")
+wrong_order = pygame.mixer.Sound("assets/sound_assets/wrong_order.wav")
 
 # Universal text functions:
-coinfont = pygame.font.Font("art_assets/text/font.ttf", font_small)
-winfont = pygame.font.Font("art_assets/text/font.ttf", font_large)
-msgfont = pygame.font.Font("art_assets/text/font.ttf", font_medium)
+coinfont = pygame.font.Font("assets/art_assets/text/font.ttf", font_small)
+winfont = pygame.font.Font("assets/art_assets/text/font.ttf", font_large)
+msgfont = pygame.font.Font("assets/art_assets/text/font.ttf", font_medium)
 
 def update_display_coins(gnome):
-    coins = coinfont.render('$' + str(gnome.money) + " / $250", True, BROWN)
+    coins = coinfont.render('$' + str(gnome.money) + " / $" + str(ending_profit), True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BLACK)
