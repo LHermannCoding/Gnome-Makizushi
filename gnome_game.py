@@ -1,9 +1,6 @@
 import pygame
 from assets import (spritesheet, art_assets, sound_assets)
 import random
-
-from sys import exit
-
 """
 This is the main code for Gnome: Makizushi by LHermannCoding. Credit to Clear 
 Code and Coding with Russ for their helpful YouTube tutorials on masks, game 
@@ -415,7 +412,6 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
             if event.type == pygame.MOUSEBUTTONUP:
                 if animation_timer >= 100:
                     pos = pygame.mouse.get_pos()
@@ -451,7 +447,6 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
@@ -603,7 +598,6 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
@@ -766,7 +760,6 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
