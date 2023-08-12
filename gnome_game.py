@@ -54,7 +54,7 @@ min_customers = 2
 max_customers = 4
 min_overlap = 0
 max_overlap = 2
-ending_profit = 200
+ending_profit = 250
 RAND_CYCLE = 400
 
 # Tutorial-Specific Constants
@@ -241,7 +241,6 @@ class Storage():
             self.image = pygame.image.load("art_assets/storage/plate_zone.png").convert_alpha()
             self.rect = self.image.get_rect(topleft = plate_pos)
 
-    
 class Plate():
     """
     Class for monitoring the ingredients (if any) that are currently on 
@@ -271,7 +270,6 @@ class Plate():
                 self.contains.append("shrimp")
             elif item == "tamago":
                 self.contains.append("tamago")
-    
     
 class Customer():
     def __init__(self, id, line_pos, request):
@@ -322,9 +320,9 @@ class Customer():
             self.person_animation.append(customer_spritesheet.get_image(x, 96, 96, BLACK, scale = 1))
         self.person = self.person_animation[1]
         
+        # Math for figuring out blitting pos for customers in relativity to others in line.
         self.person_pos_x = (80 * line_pos) + 500
         self.person_pos_y = -205
-        
         self.placard_pos_x = (160 * line_pos) - 154
         self.placard_pos_y = 1080
     
@@ -334,7 +332,6 @@ class Customer():
         time spent waiting for dish.
         """
         self.payment = max(20, int(self.payment * (self.payment_timer / payment_max)))
-
 
 class Customer_Group():
     def __init__(self):
@@ -386,7 +383,6 @@ class Customer_Group():
                     return pos
         return False
         
-            
 class Level():
     """
     Class for containing and switching between the different game states 
@@ -399,6 +395,9 @@ class Level():
         self.main_removing_in_pos = {1: False, 2: False, 3: False, 4: False}
         
     def title(self):
+        """
+        Game state for title screen.
+        """
         global animation_timer
         global title_gnome_x
         global title_gnome_y
@@ -440,6 +439,9 @@ class Level():
         pygame.display.update()
          
     def tutorial(self):
+        """
+        Game state for tutorial screen.
+        """
         global title_gnome_x
         global title_gnome_y
         global tutorial_placard_x
@@ -591,6 +593,9 @@ class Level():
         pygame.display.update()
         
     def main_game(self):
+        """
+        Game state for main game.
+        """
         global tutorial_placard_x
         global tutorial_placard_y
         for event in pygame.event.get():
@@ -676,7 +681,6 @@ class Level():
                     else:
                         pygame.mixer.Sound.play(temp_reject)
 
-            
         screen.fill(BG_COLOR_MAIN)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
@@ -743,16 +747,18 @@ class Level():
             tutorial_placard_y -= 5
             screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
             
-        gnomelius.update()
-        gnome_group.draw(screen)
-        
-        pygame.display.update()
-        
         if gnomelius.money >= ending_profit:
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
+            
+        gnomelius.update()
+        gnome_group.draw(screen) 
+        pygame.display.update()
         
     def end_game(self):
+        """
+        Game state for end game.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -793,8 +799,10 @@ class Level():
         gnome_group.draw(screen)
         pygame.display.update()
         
-        
     def level_manager(self):
+        """
+        Lead function for managing all game states.
+        """
         if self.state == 'title':
             self.title()
         if self.state == 'tutorial':
@@ -874,7 +882,7 @@ winfont = pygame.font.Font("art_assets/text/font.ttf", font_large)
 msgfont = pygame.font.Font("art_assets/text/font.ttf", font_medium)
 
 def update_display_coins(gnome):
-    coins = coinfont.render('$' + str(gnome.money) + " / $200", True, BROWN)
+    coins = coinfont.render('$' + str(gnome.money) + " / $250", True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
     win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BLACK)
