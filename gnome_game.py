@@ -283,6 +283,9 @@ class Customer():
         elif id == "tom":
             temp_sheet = pygame.image.load("art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
             placard_profile = pygame.image.load("art_assets/customers/tom/tom_profile.png").convert_alpha()
+        elif id == "stel":
+            temp_sheet = pygame.image.load("art_assets/customers/stel/spritesheet_stel.png").convert_alpha()
+            placard_profile = pygame.image.load("art_assets/customers/stel/stel_profile.png").convert_alpha()
         self.placard_profile = placard_profile
         self.person_animation = []
         customer_spritesheet = spritesheet.SpriteSheet(temp_sheet)
@@ -308,11 +311,11 @@ class Customer_Group():
     def __init__(self):
         self.attendance = {}
         self.arrival_order = []
-        self.absent_names = ["horace", "jeb", "jordan", "mickey", "pickles", "tom"]
+        self.absent_names = ["horace", "jeb", "jordan", "mickey", "pickles", "tom", "stel"]
         self.sushi_options = ["salmon", "tuna", "unagi", "crab", "shrimp", "tamago"]
         self.owed_payment = 0
         
-    def add_order(self, ingredient = None):
+    def add_order(self, ingredient = None, customer = None):
         """
         Adds order to queue. Returns line position of added order (when
         there is enough space in line), and False otherwise.
@@ -323,11 +326,14 @@ class Customer_Group():
         while self.attendance.get(line_pos, -1) != -1:
             line_pos += 1
         if line_pos <= 4:
-            customer_name = random.choice(self.absent_names)
             if not ingredient:
                 sushi_choice = random.choice(self.sushi_options)
             else:
                 sushi_choice = ingredient
+            if not customer:
+                customer_name = random.choice(self.absent_names)
+            else:
+                customer_name = customer
             self.attendance[line_pos] = Customer(customer_name, line_pos, sushi_choice)
             self.arrival_order.append(line_pos)
             self.absent_names.remove(customer_name)
@@ -394,7 +400,7 @@ class Level():
                     begin = True
                     break
         if begin:
-            position = customers.add_order("salmon")
+            position = customers.add_order("salmon", "stel")
             self.main_adding_in_pos[position] = True
             gnomelius.game_state = "tutorial"
             self.state = "tutorial"
