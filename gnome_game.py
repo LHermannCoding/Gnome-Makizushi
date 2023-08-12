@@ -10,27 +10,27 @@ Code and Coding with Russ for their helpful YouTube tutorials on masks, game
 state management, and more.
 
 """
-# Screen and Color Constants
+# Macro Constants:
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
 BG_COLOR_TUTORIAL = (175, 111, 149)
 BG_COLOR_MAIN = (143, 103, 75)
 BLACK = (0,0,0)
 BROWN = (46, 32, 6)
+font_small, font_medium, font_large = 27, 36, 48
 
-# Constants:
+# Game Constants:
 origin = (0,0)
-title_gnome_x = 880
-title_gnome_y = 135
+title_gnome_x, title_gnome_y = 880, 135
 title_gnome_arrival_pos = 580
 title_gnome_exit_pos_1 = -60
 title_gnome_exit_pos_2 = -360
-gnome_counter_x = 697
-gnome_counter_y = 234
+gnome_start_x, gnome_start_y = 440, 220
+gnome_counter_x, gnome_counter_y = 697, 234
 start_pos = (350, 315)
 nori_pos = (600, 358)
-rice_pos = (285, 440)
-crab_pos = (306, 350)
+rice_pos = (285, 460)
+crab_pos = (306, 335)
 shrimp_pos = (45,-20)
 tamago_pos = (280,-20)
 tuna_pos = (120,170)
@@ -39,15 +39,17 @@ unagi_pos = (90,310)
 plate_pos = (516,544)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
-counter_offset = (572,200)
+counter_offset = (572,147)
 coins_pos = (824,649)
 gnome_placard_pos = (646,616)
 placard_profile_pos = (640,619)
 win_pos = (188, 440)
 again_pos = (100, 510)
 plate_max = 3
-arrival_pos_customer, arrival_pos_placard = 25, 616
-departure_pos_customer, departure_pos_placard = -90, 800
+arrival_pos_customer = 25
+arrival_pos_placard = 616
+departure_pos_customer = -90
+departure_pos_placard = 800
 min_customers = 2
 max_customers = 4
 min_overlap = 0
@@ -56,8 +58,7 @@ ending_profit = 200
 RAND_CYCLE = 400
 
 # Tutorial-Specific Constants
-tutorial_placard_x = 0
-tutorial_placard_y = -438
+tutorial_placard_x, tutorial_placard_y = 0, -438
 tut_placard_arrive_pos = 0
 tut_placard_exit_pos = -600
 tut_1_gnome_pos = (620,450)
@@ -109,7 +110,7 @@ class Gnome(pygame.sprite.Sprite):
         self.image = self.images[1]
         self.placard_profile = self.image
         self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image) #might need to update in update method
+        self.mask = pygame.mask.from_surface(self.image)
     
     def control(self, x, y):
         """
@@ -428,6 +429,7 @@ class Level():
                     begin = True
                     break
         if begin:
+            pygame.mouse.set_visible(False)
             position = customers.add_order("salmon", "jeb")
             self.main_adding_in_pos[position] = True
             gnomelius.game_state = "tutorial"
@@ -664,7 +666,7 @@ class Level():
                                     customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                     pygame.mixer.Sound.play(temp_serve)
                                     self.main_removing_in_pos[removal] = True 
-                                    gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
+                                    gnomelius.money = min(gnomelius.money + customers.owed_payment, ending_profit)
                                     customers.owed_payment = 0 
                                 else:
                                     pygame.mixer.Sound.play(wrong_order)
@@ -676,7 +678,6 @@ class Level():
 
             
         screen.fill(BG_COLOR_MAIN)
-        #screen.blit(kitchen_floor, origin)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
         screen.blit(rice_zone.image, rice_pos)
@@ -748,7 +749,6 @@ class Level():
         pygame.display.update()
         
         if gnomelius.money >= ending_profit:
-            gnomelius.steps = 3
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
         
@@ -804,58 +804,53 @@ class Level():
         if self.state == 'end_game':
             self.end_game()
 
-# Pygame Setup
+# Pygame setup basics:
 pygame.init()
 pygame.font.init()
 clock = pygame.time.Clock()
 level = Level()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('A Gnome Game')
-#pygame.mouse.set_visible(False)
+pygame.mouse.set_visible(True)
 
 # Art asset loading and rectangle creation.
 gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
 gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
 start_button = pygame.image.load("art_assets/buttons/start.png").convert_alpha()
 start_rect = start_button.get_rect(topleft = trashcan_pos)
-title_bg = pygame.image.load("art_assets/title_background.png").convert_alpha()
-title_gnome = pygame.image.load("art_assets/title_gnome.png").convert_alpha()
-tutorial_gnome = pygame.image.load("art_assets/tutorial_gnome.png").convert_alpha()
-tutorial_placard = pygame.image.load("art_assets/tutorial_placard.png").convert_alpha()
-tutorial_arrow_1 = pygame.image.load("art_assets/arrow_down.png").convert_alpha()
-tutorial_arrow_2 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
-tutorial_arrow_3 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
-tutorial_arrow_4 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
-tutorial_arrow_5 = pygame.image.load("art_assets/arrow_up.png").convert_alpha()
-green_arrow = pygame.image.load("art_assets/arrow_left_green.png").convert_alpha()
-tutorial_base = pygame.image.load("art_assets/kitchen_mask_tutorial.png").convert_alpha()
+title_bg = pygame.image.load("art_assets/screens/title_background.png").convert_alpha()
+title_gnome = pygame.image.load("art_assets/gnome/title_gnome.png").convert_alpha()
+tutorial_gnome = pygame.image.load("art_assets/gnome/tutorial_gnome.png").convert_alpha()
+tutorial_placard = pygame.image.load("art_assets/screens/tutorial_placard.png").convert_alpha()
+tutorial_arrow_1 = pygame.image.load("art_assets/arrows/arrow_down.png").convert_alpha()
+tutorial_arrow_2 = pygame.image.load("art_assets/arrows/arrow_left.png").convert_alpha()
+tutorial_arrow_3 = pygame.image.load("art_assets/arrows/arrow_left.png").convert_alpha()
+tutorial_arrow_4 = pygame.image.load("art_assets/arrows/arrow_right.png").convert_alpha()
+tutorial_arrow_5 = pygame.image.load("art_assets/arrows/arrow_up.png").convert_alpha()
+green_arrow = pygame.image.load("art_assets/arrows/arrow_left_green.png").convert_alpha()
+tutorial_base = pygame.image.load("art_assets/screens/kitchen_mask_tutorial.png").convert_alpha()
 tutorial_base_mask = pygame.mask.from_surface(tutorial_base)
-kitchen_base = pygame.image.load("art_assets/kitchen_mask.png").convert_alpha()
+kitchen_base = pygame.image.load("art_assets/screens/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
-
-#kitchen_floor = pygame.image.load("art_assets/kitchen_floor.png")
-
-end_base = pygame.image.load("art_assets/end_screen_mask.png").convert_alpha()
+end_base = pygame.image.load("art_assets/screens/end_screen_mask.png").convert_alpha()
 end_base_mask = pygame.mask.from_surface(end_base)
-
-trashcan = pygame.image.load("art_assets/trashcan.png").convert_alpha()
-trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)
-                    
-counter = pygame.image.load("art_assets/counter.png").convert_alpha()
-counter_rect = counter.get_rect(topleft = counter_pos)
+trashcan = pygame.image.load("art_assets/storage/trashcan.png").convert_alpha()
+trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)          
+counter = pygame.image.load("art_assets/storage/counter.png").convert_alpha()
+counter_rect = counter.get_rect(topleft = counter_offset)
 
 # Create the main gnome player sprite:
 gnomelius = Gnome()
-gnomelius.rect.x, gnomelius.rect.y = 440, 220 # Beginning pos in kitchen center.
+gnomelius.rect.x, gnomelius.rect.y = gnome_start_x, gnome_start_y # Beginning pos in kitchen center.
 gnome_group = pygame.sprite.Group() 
 gnome_group.add(gnomelius)
 gnome_placard = pygame.image.load("art_assets/gnome/gnomelius_placard.png").convert_alpha()
 gnome_placard_rect = gnome_placard.get_rect(topleft = gnome_placard_pos)
 
-# Initialize the customers:
+# Initialize customers instance:
 customers = Customer_Group()
 
-# Create the ingredient boxes:
+# Initialize ingredient box instances:
 nori_zone = Storage("nori")
 rice_zone = Storage("rice")
 tuna_zone = Storage("tuna")
@@ -866,7 +861,7 @@ shrimp_zone = Storage("shrimp")
 tamago_zone = Storage("tamago")
 plate_zone = Storage("plate")
 
-# Load initial audio:
+# Load in initial audio:
 temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
 temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
@@ -874,23 +869,23 @@ gnome_oop = pygame.mixer.Sound("sound_assets/gnome_oop.wav")
 wrong_order = pygame.mixer.Sound("sound_assets/wrong_order.wav")
 
 # Universal text functions:
-coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
-winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
-msgfont = pygame.font.Font("art_assets/coins_font.ttf", 36)
+coinfont = pygame.font.Font("art_assets/text/font.ttf", font_small)
+winfont = pygame.font.Font("art_assets/text/font.ttf", font_large)
+msgfont = pygame.font.Font("art_assets/text/font.ttf", font_medium)
 
 def update_display_coins(gnome):
     coins = coinfont.render('$' + str(gnome.money) + " / $200", True, BROWN)
     screen.blit(coins, coins_pos)
 def update_display_win(gnome):
-    win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BROWN)
-    again = winfont.render('Press spacebar to head back into the kitchen!', True, BROWN)
+    win = winfont.render('SUCCESS! You made ' + '$' + str(gnome.money) + ' in profit.', True, BLACK)
+    again = winfont.render('Press spacebar to head back into the kitchen!', True, BLACK)
     screen.blit(win, win_pos)
     screen.blit(again, again_pos)
 def add_tutorial_message(message, message_pos):
     message = msgfont.render(message, True, BLACK)
     screen.blit(message, message_pos)
     
-# Begin game
+# Game loop:
 while True:
     level.level_manager()
     clock.tick(60)
