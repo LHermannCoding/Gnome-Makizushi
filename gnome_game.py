@@ -10,14 +10,27 @@ Code and Coding with Russ for their helpful YouTube tutorials on masks, game
 state management, and more.
 
 """
+# Screen and Color Constants
+SCREEN_WIDTH = 960
+SCREEN_HEIGHT = 720
+BG_COLOR_TUTORIAL = (175, 111, 149)
+BG_COLOR_MAIN = (143, 103, 75)
+BLACK = (0,0,0)
+BROWN = (46, 32, 6)
+
 # Constants:
 origin = (0,0)
 title_gnome_x = 880
 title_gnome_y = 135
+title_gnome_arrival_pos = 580
+title_gnome_exit_pos_1 = -60
+title_gnome_exit_pos_2 = -360
+gnome_counter_x = 697
+gnome_counter_y = 234
 start_pos = (350, 315)
 nori_pos = (600, 358)
 rice_pos = (285, 440)
-crab_pos = (306, 311)
+crab_pos = (306, 350)
 shrimp_pos = (45,-20)
 tamago_pos = (280,-20)
 tuna_pos = (120,170)
@@ -26,16 +39,27 @@ unagi_pos = (90,310)
 plate_pos = (516,544)
 trashcan_pos = (883,310)
 counter_pos = (572,127)
-counter_offset = (572,187)
+counter_offset = (572,200)
 coins_pos = (824,649)
 gnome_placard_pos = (646,616)
 placard_profile_pos = (640,619)
 win_pos = (188, 440)
 again_pos = (100, 510)
+plate_max = 3
+arrival_pos_customer, arrival_pos_placard = 25, 616
+departure_pos_customer, departure_pos_placard = -90, 800
+min_customers = 2
+max_customers = 4
+min_overlap = 0
+max_overlap = 2
+ending_profit = 200
+RAND_CYCLE = 400
 
 # Tutorial-Specific Constants
 tutorial_placard_x = 0
 tutorial_placard_y = -438
+tut_placard_arrive_pos = 0
+tut_placard_exit_pos = -600
 tut_1_gnome_pos = (620,450)
 tut_2_gnome_pos = (720,282)
 tut_3_gnome_pos = (448,450)
@@ -52,6 +76,11 @@ tut_msg1_pos = (57,116)
 tut_msg2_pos = (57,176)
 tut_msg3_pos = (57,236)
 tut_msg4_pos = (57,296)
+stage_plate = 1
+stage_nori = 2
+stage_rice = 3
+stage_protein = 4
+stage_serve = 5
 
 # Dynamic Constants:
 animation_timer = 0
@@ -66,13 +95,12 @@ class Gnome(pygame.sprite.Sprite):
         super().__init__()
         self.movex = 0
         self.movey = 0
-        self.previous_pos = (0,0)
-        self.pink = False
         self.steps = 3
+        self.previous_pos = (0,0)
+        self.money = 0
+        self.plate = None
         self.frame = 0
         self.images = []
-        self.plate = None
-        self.money = 0
         self.game_state = 'main_game'
         gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
         gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
@@ -105,10 +133,10 @@ class Gnome(pygame.sprite.Sprite):
         elif self.game_state == 'end_game':
             current_mask = end_base_mask
             
-        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) <= 60:
-            self.previous_pos = (self.rect.center)
-        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) > 0:
-            self.rect.center = self.previous_pos
+        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) <= max_overlap:
+            self.previous_pos = (self.rect.center) # Teleport to previous pos if max overlap achieved
+        if self.mask.overlap_area(current_mask, (offset_x,offset_y)) > min_overlap:
+            self.rect.center = self.previous_pos # Save previous pos upon any overlap
             
         self.rect.x = self.rect.x + self.movex
         self.rect.y = self.rect.y + self.movey
@@ -375,7 +403,7 @@ class Level():
         global title_gnome_y
         begin = False
         screen.blit(title_bg, origin)  
-        if title_gnome_x >= 580:
+        if title_gnome_x >= title_gnome_arrival_pos:
             title_gnome_x -= 3
         elif animation_timer <= 150:
             animation_timer += 4
@@ -400,14 +428,13 @@ class Level():
                     begin = True
                     break
         if begin:
-            position = customers.add_order("salmon", "stel")
+            position = customers.add_order("salmon", "jeb")
             self.main_adding_in_pos[position] = True
             gnomelius.game_state = "tutorial"
             self.state = "tutorial"
             pygame.mixer.music.load("sound_assets/mii_channel.wav")
             pygame.mixer.music.play(-1)    
                     
-                
         pygame.display.update()
          
     def tutorial(self):
@@ -440,52 +467,48 @@ class Level():
                     gnomelius.control(0, -gnomelius.steps)       
                 elif event.key == pygame.K_SPACE:
                     complete = False
-                    dominant_sound = True
-                    if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect) and self.tutorial_stage == 1:
+                    if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect) and self.tutorial_stage == stage_plate:
                         if not gnomelius.plate:
                             gnomelius.plate = Plate()
                             gnomelius.update_plate("pick_up")
-                            self.tutorial_stage = 2
+                            self.tutorial_stage = stage_nori
                             complete = True
                     elif gnomelius.plate != None:
-                        if pygame.Rect.colliderect(gnomelius.rect,nori_zone.rect) and self.tutorial_stage == 2:
+                        if pygame.Rect.colliderect(gnomelius.rect,nori_zone.rect) and self.tutorial_stage == stage_nori:
                             gnomelius.update_plate("add_nori")
                             gnomelius.plate.add_item("nori")
-                            self.tutorial_stage = 3
+                            self.tutorial_stage = stage_rice
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,rice_zone.rect) and self.tutorial_stage == 3:
+                        elif pygame.Rect.colliderect(gnomelius.rect,rice_zone.rect) and self.tutorial_stage == stage_rice:
                             gnomelius.update_plate("add_rice")
                             gnomelius.plate.add_item("rice")
-                            self.tutorial_stage = 4
+                            self.tutorial_stage = stage_protein
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_zone.rect) and self.tutorial_stage == 4:
+                        elif pygame.Rect.colliderect(gnomelius.rect,salmon_zone.rect) and self.tutorial_stage == stage_protein:
                             gnomelius.update_plate("add_salmon")
                             gnomelius.plate.add_item("salmon")
-                            self.tutorial_stage = 5
+                            self.tutorial_stage = stage_serve
                             complete = True
-                        elif pygame.Rect.colliderect(gnomelius.rect,counter_rect) and self.tutorial_stage == 5:
-                            if len(gnomelius.plate.contains) == 3:
-                                removal = customers.fulfill_order(gnomelius.plate.contains[2])
-                                if removal:
-                                    customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
-                                    pygame.mixer.Sound.play(temp_serve)
-                                    pygame.mixer.music.load("sound_assets/flyday_chinatown.wav")
-                                    pygame.mixer.music.play(-1)
-                                    gnomelius.money = 25
-                                    customers.owed_payment = 0 
-                                    self.main_removing_in_pos[removal] = True
-                                    gnomelius.game_state = "main_game"
-                                    self.state = "main_game"
-                                gnomelius.update_plate("put_down")                        
-                    if dominant_sound:
-                        if complete :
-                            pygame.mixer.Sound.play(temp_ding)
-                        elif not complete:
-                            pygame.mixer.Sound.play(temp_reject)
+                        elif pygame.Rect.colliderect(gnomelius.rect,counter_rect) and self.tutorial_stage == stage_serve:
+                            removal = customers.fulfill_order(gnomelius.plate.contains[2])
+                            if removal:
+                                customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
+                                pygame.mixer.Sound.play(temp_serve)
+                                pygame.mixer.music.load("sound_assets/flyday_chinatown.wav")
+                                pygame.mixer.music.play(-1)
+                                gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
+                                customers.owed_payment = 0 
+                                self.main_removing_in_pos[removal] = True
+                                gnomelius.game_state = "main_game"
+                                self.state = "main_game"
+                            gnomelius.update_plate("put_down")                        
+                    if complete:
+                        pygame.mixer.Sound.play(temp_ding)
+                    else:
+                        pygame.mixer.Sound.play(temp_reject)
 
             
         screen.fill(BG_COLOR_TUTORIAL)
-        #screen.blit(kitchen_floor, origin)
         screen.blit(kitchen_base, origin)
         screen.blit(nori_zone.image, nori_pos)
         screen.blit(rice_zone.image, rice_pos)
@@ -500,11 +523,11 @@ class Level():
         for add_pos, add_bool in self.main_adding_in_pos.items():
             if add_bool == True:
                 still_adding = 0
-                if customers.attendance[add_pos].person_pos_y < 25:
+                if customers.attendance[add_pos].person_pos_y < arrival_pos_customer:
                     customers.attendance[add_pos].person_pos_y += 1
                 else:
                     still_adding += 1
-                if customers.attendance[add_pos].placard_pos_y > 616:
+                if customers.attendance[add_pos].placard_pos_y > arrival_pos_placard:
                     customers.attendance[add_pos].placard_pos_y -= 2
                 else:
                     still_adding += 1
@@ -517,30 +540,30 @@ class Level():
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
             
-        if tutorial_placard_y <= 0 and title_gnome_x <= -60:
+        if tutorial_placard_y <= tut_placard_arrive_pos and title_gnome_x <= title_gnome_exit_pos_1:
             tutorial_placard_y += 8
-        elif self.tutorial_stage == 0 and title_gnome_x <= -300:
+        elif self.tutorial_stage == 0 and title_gnome_x <= title_gnome_exit_pos_2:
             self.tutorial_stage = 1
         screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
-        if self.tutorial_stage == 1:
+        if self.tutorial_stage == stage_plate:
             add_tutorial_message("Welcome! Please begin", tut_msg1_pos)
             add_tutorial_message("by grabbing a plate.", tut_msg2_pos)
             add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
             screen.blit(tutorial_gnome,tut_1_gnome_pos)
             screen.blit(tutorial_arrow_1,tut_1_arrow_pos)
-        elif self.tutorial_stage == 2:
+        elif self.tutorial_stage == stage_nori:
             add_tutorial_message("Nice! Next, please add a base", tut_msg1_pos)
             add_tutorial_message("of nori to your plate.", tut_msg2_pos)
             add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
             screen.blit(tutorial_gnome,tut_2_gnome_pos)
             screen.blit(tutorial_arrow_2,tut_2_arrow_pos)
-        elif self.tutorial_stage == 3:
+        elif self.tutorial_stage == stage_rice:
             add_tutorial_message("Great! Now put some rice", tut_msg1_pos)
             add_tutorial_message("on top of your plated nori.", tut_msg2_pos)
             add_tutorial_message("(use spacebar for actions)", tut_msg3_pos)
             screen.blit(tutorial_gnome,tut_3_gnome_pos)
             screen.blit(tutorial_arrow_3,tut_3_arrow_pos)
-        elif self.tutorial_stage == 4:
+        elif self.tutorial_stage == stage_protein:
             add_tutorial_message("Once you have a base of", tut_msg1_pos)
             add_tutorial_message("nori and rice, finish your", tut_msg2_pos)
             add_tutorial_message("dish with desired protein.", tut_msg3_pos)
@@ -548,7 +571,7 @@ class Level():
             screen.blit(tutorial_gnome,tut_4_gnome_pos)
             screen.blit(tutorial_arrow_4,tut_4_arrow_pos)
             screen.blit(green_arrow, green_arrow_pos)
-        elif self.tutorial_stage == 5:
+        elif self.tutorial_stage == stage_serve:
             add_tutorial_message("Excellent! You have finished", tut_msg1_pos)
             add_tutorial_message("the dish. Bring the plate to", tut_msg2_pos)
             add_tutorial_message("the counter and serve!", tut_msg3_pos)
@@ -560,7 +583,7 @@ class Level():
         
         gnomelius.update()
         gnome_group.draw(screen)
-        if title_gnome_x >= -360:
+        if title_gnome_x >= title_gnome_exit_pos_2:
             title_gnome_x -= 10
             screen.blit(title_gnome, (title_gnome_x,title_gnome_y))
         pygame.display.update()
@@ -592,7 +615,6 @@ class Level():
                     gnomelius.control(0, -gnomelius.steps)       
                 elif event.key == pygame.K_SPACE:
                     complete = False
-                    dominant_sound = True
                     if pygame.Rect.colliderect(gnomelius.rect,plate_zone.rect):
                         if not gnomelius.plate:
                             gnomelius.plate = Plate()
@@ -636,23 +658,21 @@ class Level():
                             gnomelius.plate = Plate()
                             complete = True
                         elif pygame.Rect.colliderect(gnomelius.rect,counter_rect):
-                            if len(gnomelius.plate.contains) == 3:
+                            if len(gnomelius.plate.contains) == plate_max:
                                 removal = customers.fulfill_order(gnomelius.plate.contains[2])
                                 if removal:
                                     customers.attendance[removal].person = customers.attendance[removal].person_animation[0]
                                     pygame.mixer.Sound.play(temp_serve)
-                                    dominant_sound = False
                                     self.main_removing_in_pos[removal] = True 
                                     gnomelius.money = min(gnomelius.money + customers.owed_payment, 999)
                                     customers.owed_payment = 0 
                                 else:
                                     pygame.mixer.Sound.play(wrong_order)
                                 gnomelius.update_plate("put_down")                        
-                    if dominant_sound:
-                        if complete :
-                            pygame.mixer.Sound.play(temp_ding)
-                        elif not complete:
-                            pygame.mixer.Sound.play(temp_reject)
+                    if complete :
+                        pygame.mixer.Sound.play(temp_ding)
+                    else:
+                        pygame.mixer.Sound.play(temp_reject)
 
             
         screen.fill(BG_COLOR_MAIN)
@@ -674,12 +694,12 @@ class Level():
         update_display_coins(gnomelius)
          
         num_customers = len(customers.attendance)
-        if num_customers < 2:
+        if num_customers < min_customers:
             position = customers.add_order()
             self.main_adding_in_pos[position] = True
-        if num_customers < 4:
-            temp_rand = random.randint(1, 430)
-            if temp_rand == 430:
+        if num_customers < max_customers:
+            temp_rand = random.randint(1, RAND_CYCLE)
+            if temp_rand == RAND_CYCLE:
                 position = customers.add_order()
                 if position:
                     self.main_adding_in_pos[position] = True
@@ -687,11 +707,11 @@ class Level():
         for add_pos, add_bool in self.main_adding_in_pos.items():
             if add_bool == True:
                 still_adding = 0
-                if customers.attendance[add_pos].person_pos_y < 25:
+                if customers.attendance[add_pos].person_pos_y < arrival_pos_customer:
                     customers.attendance[add_pos].person_pos_y += 1
                 else:
                     still_adding += 1
-                if customers.attendance[add_pos].placard_pos_y > 616:
+                if customers.attendance[add_pos].placard_pos_y > arrival_pos_placard:
                     customers.attendance[add_pos].placard_pos_y -= 2
                 else:
                     still_adding += 1
@@ -700,11 +720,11 @@ class Level():
         for removal_pos, removal_bool in self.main_removing_in_pos.items():
             still_removing = 0
             if removal_bool:
-                if customers.attendance[removal_pos].person_pos_y > -90:
+                if customers.attendance[removal_pos].person_pos_y > departure_pos_customer:
                     customers.attendance[removal_pos].person_pos_y -= 1
                 else:
                     still_removing += 1
-                if customers.attendance[removal_pos].placard_pos_y < 800:
+                if customers.attendance[removal_pos].placard_pos_y < departure_pos_placard:
                     customers.attendance[removal_pos].placard_pos_y += 1
                 else:
                     still_removing += 1
@@ -718,7 +738,7 @@ class Level():
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
         
-        if tutorial_placard_y >= -600:
+        if tutorial_placard_y >= tut_placard_exit_pos:
             tutorial_placard_y -= 5
             screen.blit(tutorial_placard, (tutorial_placard_x, tutorial_placard_y))
             
@@ -727,7 +747,7 @@ class Level():
         
         pygame.display.update()
         
-        if gnomelius.money >= 200:
+        if gnomelius.money >= ending_profit:
             gnomelius.steps = 3
             gnomelius.game_state = 'end_game'
             self.state = 'end_game'
@@ -757,8 +777,8 @@ class Level():
                     gnomelius.control(0, -gnomelius.steps)
                 elif event.key == pygame.K_SPACE:
                     gnomelius.money = 0
-                    gnomelius.rect.x = 697
-                    gnomelius.rect.y = 234
+                    gnomelius.rect.x = gnome_counter_x
+                    gnomelius.rect.y = gnome_counter_y
                     gnomelius.game_state = "main_game"
                     self.state = "main_game"
                     
@@ -784,15 +804,6 @@ class Level():
         if self.state == 'end_game':
             self.end_game()
 
-
-# Define Constants
-SCREEN_WIDTH = 960
-SCREEN_HEIGHT = 720
-BG_COLOR_TUTORIAL = (175, 111, 149)
-BG_COLOR_MAIN = (143, 103, 75)
-BLACK = (0,0,0)
-BROWN = (46, 32, 6)
-
 # Pygame Setup
 pygame.init()
 pygame.font.init()
@@ -802,31 +813,23 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('A Gnome Game')
 #pygame.mouse.set_visible(False)
 
-# Art asset loading.
+# Art asset loading and rectangle creation.
 gnome_spritesheet = pygame.image.load("art_assets/gnome/gnomesheet.png").convert_alpha()
 gnome_sheet = spritesheet.SpriteSheet(gnome_spritesheet)
-
 start_button = pygame.image.load("art_assets/buttons/start.png").convert_alpha()
 start_rect = start_button.get_rect(topleft = trashcan_pos)
-
 title_bg = pygame.image.load("art_assets/title_background.png").convert_alpha()
 title_gnome = pygame.image.load("art_assets/title_gnome.png").convert_alpha()
-
 tutorial_gnome = pygame.image.load("art_assets/tutorial_gnome.png").convert_alpha()
-
 tutorial_placard = pygame.image.load("art_assets/tutorial_placard.png").convert_alpha()
-
 tutorial_arrow_1 = pygame.image.load("art_assets/arrow_down.png").convert_alpha()
 tutorial_arrow_2 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
 tutorial_arrow_3 = pygame.image.load("art_assets/arrow_left.png").convert_alpha()
 tutorial_arrow_4 = pygame.image.load("art_assets/arrow_right.png").convert_alpha()
 tutorial_arrow_5 = pygame.image.load("art_assets/arrow_up.png").convert_alpha()
-
 green_arrow = pygame.image.load("art_assets/arrow_left_green.png").convert_alpha()
-
 tutorial_base = pygame.image.load("art_assets/kitchen_mask_tutorial.png").convert_alpha()
 tutorial_base_mask = pygame.mask.from_surface(tutorial_base)
-
 kitchen_base = pygame.image.load("art_assets/kitchen_mask.png").convert_alpha()
 kitchen_base_mask = pygame.mask.from_surface(kitchen_base)
 
@@ -841,18 +844,18 @@ trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)
 counter = pygame.image.load("art_assets/counter.png").convert_alpha()
 counter_rect = counter.get_rect(topleft = counter_pos)
 
-# Create the main gnome.
+# Create the main gnome player sprite:
 gnomelius = Gnome()
-gnomelius.rect.x, gnomelius.rect.y = 440, 220
+gnomelius.rect.x, gnomelius.rect.y = 440, 220 # Beginning pos in kitchen center.
 gnome_group = pygame.sprite.Group() 
 gnome_group.add(gnomelius)
 gnome_placard = pygame.image.load("art_assets/gnome/gnomelius_placard.png").convert_alpha()
 gnome_placard_rect = gnome_placard.get_rect(topleft = gnome_placard_pos)
 
-# Initialize the customers.
+# Initialize the customers:
 customers = Customer_Group()
 
-# Create the ingredient boxes.
+# Create the ingredient boxes:
 nori_zone = Storage("nori")
 rice_zone = Storage("rice")
 tuna_zone = Storage("tuna")
@@ -863,14 +866,14 @@ shrimp_zone = Storage("shrimp")
 tamago_zone = Storage("tamago")
 plate_zone = Storage("plate")
 
-# Temp audio sound
+# Load initial audio:
 temp_ding = pygame.mixer.Sound("sound_assets/temp_ding.wav")
 temp_reject = pygame.mixer.Sound("sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("sound_assets/temp_serve.wav")
 gnome_oop = pygame.mixer.Sound("sound_assets/gnome_oop.wav")
 wrong_order = pygame.mixer.Sound("sound_assets/wrong_order.wav")
 
-# Universal Functions:
+# Universal text functions:
 coinfont = pygame.font.Font("art_assets/coins_font.ttf", 27)
 winfont = pygame.font.Font("art_assets/coins_font.ttf", 48)
 msgfont = pygame.font.Font("art_assets/coins_font.ttf", 36)
