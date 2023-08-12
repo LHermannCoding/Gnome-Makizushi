@@ -412,6 +412,7 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                raise SystemExit
             if event.type == pygame.MOUSEBUTTONUP:
                 if animation_timer >= 100:
                     pos = pygame.mouse.get_pos()
@@ -447,6 +448,7 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                raise SystemExit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
@@ -598,6 +600,7 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                raise SystemExit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
@@ -760,6 +763,7 @@ class Level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                raise SystemExit
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     gnomelius.control(-gnomelius.steps, 0)
