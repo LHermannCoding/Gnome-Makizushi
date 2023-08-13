@@ -1,6 +1,6 @@
 # Gnome: Makizushi by LHermannCoding
 This is the repository used for Gnome: Makizushi, my summer 2024 coding project. I created this project because I was motivated to make my first solo game project, and wanted to continue to develop my pygame skills because of how much fun I had while creating checkers. All of the code and assets are publicly available in this repository for viewing.
-## **[Play version 1.0.0 now!](https://lhermanncoding.itch.io/gnome-makizushi)** 
+## **[Play version 1.1.0 now!](https://lhermanncoding.itch.io/gnome-makizushi)** 
 _(Note: Avoding clicking on the large ads when downloading from itch.io. Application will be contained in zip file once downloaded)_
 
 
