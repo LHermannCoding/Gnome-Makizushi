@@ -6,6 +6,8 @@ _(Note: Avoding clicking on the large ads when downloading from itch.io. Applica
 
 ## **[Click for basic gameplay footage](https://www.youtube.com/watch?v=TRRApw9aeYQ)**
 
+### Gameplay:
+You are Gnomelius, both a lone sushi chef and a whimsical gnome, who cooks to appease waves of mystical customers wanting their own delicious plate of maki. Use the arrow keys (up, down, left, right) to move around, and use the space bar for committing actions (ingredients, trashbin, counter). Your goal is to serve dishes until you reach the profit quota for the service. You must keep track of the arrival order of customers, the locations of ingredients, and how long you have to serve each customer. Good luck!
 
 ### Dedication:
 I dedicate this game to my girlfriend, who was there from the beginning to the end of this project and pushed me to keep on gnoming even when the coding challenges were tough. I would also dedicate this game to my brother, who achieved the first ever Gnome: Makizushi sub 30s $200 profit speedrun with a time of 27.81 seconds. Finally, I dedicate this game to the goons, whose whimsy and creativity truly embody the gnome spirit I was trying to recreate.
