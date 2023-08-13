@@ -85,6 +85,8 @@ stage_serve = 5
 animation_timer = 0
 win_animation_timer = 0
 payment_max = 2500
+customer_wait_start = 0 
+customer_wait_end = 2520
 
 class Gnome(pygame.sprite.Sprite):
     """
@@ -275,7 +277,10 @@ class Customer():
         self.line_pos = line_pos
         self.payment = 60
         self.payment_timer = payment_max
+        self.wait_timer = customer_wait_start
         self.request = request
+        self.timer_loc_x = 0
+        self.timer_loc_y = 691
         if request == "tuna":
             placard_text = pygame.image.load("assets/art_assets/text/profile_text_tuna.png").convert_alpha()
         elif request == "salmon":
@@ -292,25 +297,25 @@ class Customer():
         
         if id == "horace":
             temp_sheet = pygame.image.load("assets/art_assets/customers/horace/spritesheet_horace.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/horace/horace_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/horace/horace_profile_timer.png").convert_alpha()
         elif id == "jeb":
             temp_sheet = pygame.image.load("assets/art_assets/customers/jeb/spritesheet_jeb.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/jeb/jeb_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/jeb/jeb_profile_timer.png").convert_alpha()
         elif id == "jordan":
             temp_sheet = pygame.image.load("assets/art_assets/customers/jordan/spritesheet_jordan.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/jordan/jordan_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/jordan/jordan_profile_timer.png").convert_alpha()
         elif id == "mickey":
             temp_sheet = pygame.image.load("assets/art_assets/customers/mickey/spritesheet_mickey.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/mickey/mickey_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/mickey/mickey_profile_timer.png").convert_alpha()
         elif id == "pickles":
             temp_sheet = pygame.image.load("assets/art_assets/customers/pickles/spritesheet_pickles.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/pickles/pickles_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/pickles/pickles_profile_timer.png").convert_alpha()
         elif id == "tom":
             temp_sheet = pygame.image.load("assets/art_assets/customers/tom/spritesheet_tom.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/tom/tom_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/tom/tom_profile_timer.png").convert_alpha()
         elif id == "stel":
             temp_sheet = pygame.image.load("assets/art_assets/customers/stel/spritesheet_stel.png").convert_alpha()
-            placard_profile = pygame.image.load("assets/art_assets/customers/stel/stel_profile.png").convert_alpha()
+            placard_profile = pygame.image.load("assets/art_assets/customers/stel/stel_profile_timer.png").convert_alpha()
         self.placard_profile = placard_profile
         self.person_animation = []
         customer_spritesheet = spritesheet.SpriteSheet(temp_sheet)
@@ -330,6 +335,17 @@ class Customer():
         time spent waiting for dish.
         """
         self.payment = max(20, int(self.payment * (self.payment_timer / payment_max)))
+    
+    def update_timer(self):
+        """
+        Function regarding waittime for customers that updates internal clock
+        and moves timer mark appropriately.
+        """
+        self.payment_timer -= 1
+        self.wait_timer += 1
+        self.timer_loc_x = ((self.line_pos - 1) * 160) + 17 + (self.wait_timer // 20)
+        screen.blit(timer_mark, (self.timer_loc_x, self.timer_loc_y))
+        
 
 class Customer_Group():
     def __init__(self):
@@ -388,6 +404,7 @@ class Level():
     """
     def __init__(self):
         self.state = 'title'
+        self.swap_delay = False
         self.tutorial_stage = 0
         self.main_adding_in_pos = {1: False, 2: False, 3: False, 4: False}
         self.main_removing_in_pos = {1: False, 2: False, 3: False, 4: False}
@@ -395,12 +412,12 @@ class Level():
     def title(self):
         """
         Game state for title screen.
-        """
+        """     
         global animation_timer
         global title_gnome_x
         global title_gnome_y
-        begin = False
         screen.blit(title_bg, origin)  
+        begin = False
         if title_gnome_x >= title_gnome_arrival_pos:
             title_gnome_x -= 3
         elif animation_timer <= 150:
@@ -421,10 +438,27 @@ class Level():
                         break         
                     elif g.collidepoint(pos):
                         pygame.mixer.Sound.play(gnome_oop)
+            # Gnome movement kept even in title screen to avoid input bug on keys when game state swaps.
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    gnomelius.control(-gnomelius.steps, 0)
+                elif event.key == pygame.K_RIGHT:
+                    gnomelius.control(gnomelius.steps, 0)
+                elif event.key == pygame.K_UP:
+                    gnomelius.control(0, -gnomelius.steps)
+                elif event.key == pygame.K_DOWN:
+                    gnomelius.control(0, gnomelius.steps)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    gnomelius.control(gnomelius.steps, 0)
+                elif event.key == pygame.K_RIGHT:
+                    gnomelius.control(-gnomelius.steps, 0)
+                elif event.key == pygame.K_UP:
+                    gnomelius.control(0, gnomelius.steps)
+                elif event.key == pygame.K_DOWN:
+                    gnomelius.control(0, -gnomelius.steps)
                 if event.key == pygame.K_SPACE and animation_timer >= 100:
                     begin = True
-                    break
         if begin:
             pygame.mouse.set_visible(False)
             position = customers.add_order("salmon", "jeb")
@@ -597,6 +631,8 @@ class Level():
         global tutorial_placard_x
         global tutorial_placard_y
         global ending_profit
+        global customer_wait_end
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -737,10 +773,18 @@ class Level():
                     del customers.attendance[removal_pos]
         
         for customer in customers.attendance.values():
-            customer.payment_timer -= 1
             screen.blit(customer.person, (customer.person_pos_x, customer.person_pos_y))
             screen.blit(customer.placard_profile, (customer.placard_pos_x, customer.placard_pos_y))
             screen.blit(customer.placard_text, (customer.placard_pos_x, customer.placard_pos_y))
+            if customer.wait_timer < customer_wait_end and self.main_adding_in_pos[customer.line_pos] == False and self.main_removing_in_pos[customer.line_pos] == False:
+                customer.update_timer()
+            elif customer.wait_timer == customer_wait_end:
+                customer.wait_timer += 1
+                pygame.mixer.Sound.play(lost_order)
+                leave = customers.fulfill_order(customer.request)
+                customers.owed_payment = 0 
+                customers.attendance[leave].person = customers.attendance[leave].person_animation[0]
+                self.main_removing_in_pos[leave] = True 
         
         if tutorial_placard_y >= tut_placard_exit_pos:
             tutorial_placard_y -= 5
@@ -847,6 +891,7 @@ trashcan = pygame.image.load("assets/art_assets/storage/trashcan.png").convert_a
 trashcan_rect = trashcan.get_rect(topleft = trashcan_pos)          
 counter = pygame.image.load("assets/art_assets/storage/counter.png").convert_alpha()
 counter_rect = counter.get_rect(topleft = counter_offset)
+timer_mark = pygame.image.load("assets/art_assets/buttons/timer_mark.png").convert_alpha()
 
 # Create the main gnome player sprite:
 gnomelius = Gnome()
@@ -876,6 +921,7 @@ temp_reject = pygame.mixer.Sound("assets/sound_assets/temp_reject.wav")
 temp_serve = pygame.mixer.Sound("assets/sound_assets/temp_serve.wav")
 gnome_oop = pygame.mixer.Sound("assets/sound_assets/gnome_oop.wav")
 wrong_order = pygame.mixer.Sound("assets/sound_assets/wrong_order.wav")
+lost_order = pygame.mixer.Sound("assets/sound_assets/lost_order.wav")
 
 # Universal text functions:
 coinfont = pygame.font.Font("assets/art_assets/text/font.ttf", font_small)
